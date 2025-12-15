@@ -28,7 +28,7 @@ class KNNClassifier:
 
     def fit(self, X, y):
         """
-        Memorizza i dati di training (Lazy Learning).
+        Memorizza i dati di training.
         
         Parametri:
             X (array-like): Matrice delle features di training.
@@ -43,7 +43,6 @@ class KNNClassifier:
     def _euclidean_distance(self, point1, point2):
         """
         Calcola la distanza euclidea tra due punti.
-        Richiesto specificamente da Project.pdf.
         
         Parametri:
             point1 (np.array): Primo punto.
@@ -64,18 +63,18 @@ class KNNClassifier:
         Ritorna:
             int: La classe predetta.
         """
-        # 1. Calcolare la distanza da TUTTI i campioni del set di training [cite: 46]
+        # 1. Calcolare la distanza da TUTTI i campioni del set di training
         distances = []
         for i in range(len(self.X_train)):
             dist = self._euclidean_distance(x, self.X_train[i])
             distances.append((dist, self.y_train[i]))
         
-        # 2. Identificare i k campioni più vicini [cite: 46]
+        # 2. Identificare i k campioni più vicini
         distances.sort(key=lambda x: x[0])
         k_nearest = distances[:self.k]
         k_nearest_labels = [label for _, label in k_nearest]
         
-        # 3. Classificare scegliendo la label più comune [cite: 48]
+        # 3. Classificare scegliendo la label più comune
         counts = Counter(k_nearest_labels)
         max_votes = max(counts.values())
         
@@ -87,21 +86,4 @@ class KNNClassifier:
             return random.choice(candidates)
         else:
             return candidates[0]
-
-    def predict(self, X_test):
-        """
-        Prevede le classi per un intero set di test.
-        
-        Parametri:
-            X_test (array-like): Matrice delle features di test.
-            
-        Ritorna:
-            np.array: Vettore delle predizioni.
-        """
-        X_test = np.array(X_test)
-        predictions = [self._predict_single(x) for x in X_test]
-        return np.array(predictions)
-
-
-
-
+    
