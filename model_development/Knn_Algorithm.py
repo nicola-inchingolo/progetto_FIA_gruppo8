@@ -16,14 +16,25 @@ class KNNClassifier:
     
     """
     
-    def __init__(self, k: int, x_data_train: pd.DataFrame, y_data_train: pd.Series, distance_strategy: int):
-        self.x_data_train = x_data_train      # Store the training data (features).
+    def _minkowski_distance_vectorized(self, x, p):
+            """
+            Calcola la distanza di Minkowski (generalizzazione di Euclidea e Manhattan).
+            Formula: (sum(|x - y|^p))^(1/p)
+            
+            Se p=2 -> Distanza Euclidea
+            Se p=1 -> Distanza di Manhattan
+            """
+            return np.sum(np.abs(self.X_train - x) ** p, axis=1) ** (1 / p)
+    
+    def __init__(self, k: int, x_data_train: pd.DataFrame, y_data_train: pd.Series, p: int):
         self.y_data_train = y_data_train      # Store the labels for the training data.
         self.k = k                  # Number of neighbors to consider.
-        self.distance_strategy = distance_strategy  # Number of the strategy to consider.
+        self.p = p  # Number of the strategy to consider.
         
         """
         Identifies the k nearest neighbors by calculating distances against the full training set.
         It returns the labels of the k points with the lowest distance to the test point.
                 
         """
+        
+       

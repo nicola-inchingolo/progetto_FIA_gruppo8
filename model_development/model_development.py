@@ -15,21 +15,16 @@ class KNNClassifier:
         y_train (np.array): Labels del set di training.
     """
 
-   
-        
-    def __init__(self, k=3, p=2): 
-            
+    def __init__(self, k=3):
         """
-        Inizializza il classificatore con il parametro k.    
+        Inizializza il classificatore con il parametro k.
+        
         Parametri:
-        k (int): Numero di vicini (default=3).
-        p (int): Parametro della distanza di Minkowski (default=2, distanza Euclidea).
+            k (int): Numero di vicini (default=3).
         """
         self.k = k
-        self.p = p 
         self.X_train = None
         self.y_train = None
-        
 
     def fit(self, X, y):
         """
@@ -46,15 +41,19 @@ class KNNClassifier:
         self.X_train = np.array(X)
         self.y_train = np.array(y)
 
-    def _minkowski_distance_vectorized(self, x, p):
+    def _euclidean_distance_vectorized(self, x):
         """
-        Calcola la distanza di Minkowski (generalizzazione di Euclidea e Manhattan).
-        Formula: (sum(|x - y|^p))^(1/p)
+        Calcola la distanza euclidea tra un punto x e TUTTI i punti di training
+        in modo vettorializzato (molto più efficiente del ciclo for).
         
-        Se p=2 -> Distanza Euclidea
-        Se p=1 -> Distanza di Manhattan
+        Parametri:
+            x (np.array): Il punto di test.
+            
+        Ritorna:
+            np.array: Un array contenente le distanze da tutti i punti di training.
         """
-        return np.sum(np.abs(self.X_train - x) ** p, axis=1) ** (1 / p)
+        # Sfrutta il broadcasting di NumPy: (Matrix - vector) opera su ogni riga
+        return np.sqrt(np.sum((self.X_train - x) ** 2, axis=1))
 
     def _predict_single(self, x):
         """
