@@ -37,21 +37,23 @@ class KNNClassifier:
         Ritorna:
             None
         """
+        # Conversione in numpy array per supportare operazioni vettoriali
         self.X_train = np.array(X)
         self.y_train = np.array(y)
 
-    def _euclidean_distance(self, point1, point2):
+    def _euclidean_distance_vectorized(self, x):
         """
-        Calcola la distanza euclidea tra due punti.
+        Calcola la distanza euclidea tra un punto x e TUTTI i punti di training
+        in modo vettorializzato (molto più efficiente del ciclo for).
         
         Parametri:
-            point1 (np.array): Primo punto.
-            point2 (np.array): Secondo punto.
+            x (np.array): Il punto di test.
             
         Ritorna:
-            float: La distanza euclidea.
+            np.array: Un array contenente le distanze da tutti i punti di training.
         """
-        return np.sqrt(np.sum((point1 - point2) ** 2))
+        # Sfrutta il broadcasting di NumPy: (Matrix - vector) opera su ogni riga
+        return np.sqrt(np.sum((self.X_train - x) ** 2, axis=1))
 
     def _predict_single(self, x):
         """
@@ -64,15 +66,13 @@ class KNNClassifier:
             int: La classe predetta.
         """
         # 1. Calcolare la distanza da TUTTI i campioni del set di training
-        distances = []
-        for i in range(len(self.X_train)):
-            dist = self._euclidean_distance(x, self.X_train[i])
-            distances.append((dist, self.y_train[i]))
+        # Utilizziamo la versione vettorializzata per efficienza
+        distances = self._euclidean_distance_vectorized(x)
         
         # 2. Identificare i k campioni più vicini
-        distances.sort(key=lambda x: x[0])
-        k_nearest = distances[:self.k]
-        k_nearest_labels = [label for _, label in k_nearest]
+        # argsort restituisce gli indici che ordinerebbero l'array
+        k_indices = np.argsort(distances)[:self.k]
+        k_nearest_labels = self.y_train[k_indices]
         
         # 3. Classificare scegliendo la label più comune
         counts = Counter(k_nearest_labels)
@@ -86,4 +86,17 @@ class KNNClassifier:
             return random.choice(candidates)
         else:
             return candidates[0]
-    
+
+    def predict(self, X_test):
+        """
+        Prevede le classi per un intero set di dati di test.
+        
+        Parametri:
+            X_test (array-like): Matrice delle features di test.
+        
+        Ritorna:
+            np.array: Vettore con le predizioni per ogni campione.
+        """
+        X_test = np.array(X_test)
+        predictions = [self._predict_single(x) for x in X_test]
+        return np.array(predictions)
