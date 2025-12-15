@@ -57,6 +57,7 @@ class KNNClassifier:
         It returns the labels of the k points with the lowest distance to the test point.
         """
         # 1. Calcola la distanza tra il punto x_test e TUTTI i punti di training
+        distances = []
         distances = self._minkowski_distance_vectorized(x, self.p)
         
         # 2. Ottieni gli indici che ordinerebbero l'array delle distanze (dal più piccolo al più grande)
