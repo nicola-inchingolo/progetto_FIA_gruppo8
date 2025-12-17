@@ -17,13 +17,18 @@ class metrics:
         return (self.FP + self.FN) / (self.TP + self.TN + self.FP + self.FN)
 
     def calculate_sensitivity(self):
-        return self.TP / (self.TP + self.FN)
+        denom = self.TP + self.FN
+        return self.TP / denom if denom != 0 else 0
 
     def calculate_specificity(self):
-        return self.TN / (self.TN + self.FP)
+        denom = self.TN + self.FP
+        return self.TN / denom if denom != 0 else 0
 
     def calculate_geometric_mean(self):
-        return math.sqrt(self.calculate_sensitivity() * self.calculate_specificity())
+        sensitivity = self.calculate_sensitivity()
+        specificity = self.calculate_specificity()
+        return math.sqrt(sensitivity * specificity)
+
 
     def calculate_precision(self):
         denom = self.TP + self.FP
@@ -35,8 +40,7 @@ class metrics:
         denom = precision + sensitivity
         return (2 * precision * sensitivity) / denom if denom != 0 else 0
 
-    def calculate_auc(self):
-        return self.calculate_sensitivity() / self.calculate_specificity()
+
 
     def calculate_all_the_above(self):
         return {
@@ -46,6 +50,6 @@ class metrics:
             'Specificity': self.calculate_specificity(),
             'G-Mean': self.calculate_geometric_mean(),
             'Precision': self.calculate_precision(),
-            'F1-Score': self.calculate_f1_score(),
-            'AUC': self.calculate_auc()
+            'F1-Score': self.calculate_f1_score()
+           # 'AUC': self.calculate_auc()
         }
