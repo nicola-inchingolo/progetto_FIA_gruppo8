@@ -2,6 +2,32 @@ import math
 import numpy as np
 
 
+# pos_label = evento di interesse
+# neg_label = evento non tipico
+def confusion_matrix_binary(y_test, y_pred, pos_label=4, neg_label=2, normalize=True):
+    TP = np.sum((y_test == pos_label) & (y_pred == pos_label))
+    TN = np.sum((y_test == neg_label) & (y_pred == neg_label))
+    FP = np.sum((y_test == neg_label) & (y_pred == pos_label))
+    FN = np.sum((y_test == pos_label) & (y_pred == neg_label))
+
+    cm = np.array([[TN, FP],
+                   [FN, TP]])
+    return cm
+
+
+def calculate_mean_metrics(metrics_list: dict):
+    sum_metrics = {}
+    for fold in metrics_list.values():
+        for key, value in fold.items():
+            if key not in sum_metrics:
+                sum_metrics[key] = 0
+            sum_metrics[key] += value
+
+    num_folds = len(metrics_list)
+    mean_metrics = {key: sum_metrics[key] / num_folds for key in sum_metrics}
+    return mean_metrics
+
+
 class metrics:
 
     def __init__(self, confusion_matrix: np.ndarray):
@@ -29,7 +55,6 @@ class metrics:
         specificity = self.calculate_specificity()
         return math.sqrt(sensitivity * specificity)
 
-
     def calculate_precision(self):
         denom = self.TP + self.FP
         return self.TP / denom if denom != 0 else 0
@@ -40,8 +65,6 @@ class metrics:
         denom = precision + sensitivity
         return (2 * precision * sensitivity) / denom if denom != 0 else 0
 
-
-
     def calculate_all_the_above(self):
         return {
             'Accuracy': self.calculate_accuracy(),
@@ -51,5 +74,4 @@ class metrics:
             'G-Mean': self.calculate_geometric_mean(),
             'Precision': self.calculate_precision(),
             'F1-Score': self.calculate_f1_score()
-           # 'AUC': self.calculate_auc()
         }
