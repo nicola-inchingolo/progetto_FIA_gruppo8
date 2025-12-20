@@ -1,162 +1,120 @@
-import matplotlib
-matplotlib.use("TkAgg")  # oppure "Qt5Agg"
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
 from MockKNN import MockKNN
-from calculate_metrics import metrics
-from holdout_evaluator import confusion_matrix_binary
+from metrics import metrics
+import plot_data
+from metrics import confusion_matrix_binary
+from metrics import calculate_mean_metrics
+from holdout_evaluator import evaluator
 
 
-if __name__ == "__main__":
+# K esperimenti da inserire
+class kFoldEvaluator(evaluator):
 
-    num_samples = 640  # numero di campioni
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int):
+        super().__init__(datasetToEvaluate, metrics)
+        self.K_tests = K_tests
 
-    df = pd.DataFrame({
-        "ID": range(1, num_samples + 1),
-        "Sample code number": range(1001, 1001 + num_samples),
-        "Clump Thickness": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Uniformity of Cell Size": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Uniformity of Cell Shape": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Marginal Adhesion": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Single Epithelial Cell Size": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Bare Nuclei": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Bland Chromatin": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Normal Nucleoli": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Mitoses": np.round(np.random.uniform(1, 5, num_samples), 1),
-        # Alternanza tra benigno (2) e maligno (4) per bilanciare le classi
-        "Class": [2, 4] * (num_samples // 2)
-    })
-
-    print(df)
-
-    K_split = int(input("inserisci K: "))
-    rows, column = df.shape
-
-    iteration = int(rows/K_split)
-
-    folds = np.array_split(df, K_split)
-
-
-    metrics_list = dict()
-    auc_list = np.array([])
-    y_test_all = np.array([])
-    y_score_all = np.array([])
-    y_pred_all = np.array([])
-
-    for i in range(K_split):
-
+    def split_dataset_with_strategy(self, folds: np.array, i: int, K_split: int):
         test_section = folds[i]
         train_section = pd.concat(folds[j] for j in range(K_split) if j != i)
-        print(f"test set: \n {test_section} \n")
-        print(f"train set: \n {train_section} \n")
 
         x_train = train_section.drop(columns=["ID", "Sample code number", "Class"])
         y_train = train_section["Class"]
-
         x_test = test_section.drop(columns=["ID", "Sample code number", "Class"])
         y_test = test_section["Class"]
 
-        model = MockKNN(k=5, seed = i, error_rate=0.3)
-        model.fit(x_train, y_train)
-        y_pred, y_score = model.predict(x_test, y_test=y_test)
+        return x_train, x_test, y_train, y_test
 
-        y_test_all = np.append(y_test_all, y_test)
-        y_score_all = np.append(y_score_all, y_score)
-        y_pred_all = np.append(y_pred_all, y_pred)
-
+    def calculate_metrics(self, y_test: pd.Series, y_pred: pd.Series):
         cm = confusion_matrix_binary(y_test, y_pred)
         print("Confusion Matrix:")
         print(type(cm))
 
-        print(f"TP: {cm[0][0]}")
+        print(f"TN: {cm[0][0]}")
         print(f"FP: {cm[0][1]}")
         print(f"FN: {cm[1][0]}")
-        print(f"TN: {cm[1][1]}")
-
+        print(f"TP: {cm[1][1]}")
 
         metrics_calculator = metrics(cm)
-        metrics_list[i] = metrics_calculator.calculate_all_the_above()
-        print(f"\n metrcis list: \n {metrics_list} \n")
+        metrics_list = dict()
 
-        #tpr_array = np.append(tpr_array, metrics_list[i]["Sensitivity"])
-        #fpr_array = np.append(fpr_array, 1 - metrics_list[i]["Specificity"])  # FPR = 1 - Specificity
-    thresholds = np.linspace(0, 1, 10)
-    tpr_list = []
-    fpr_list = []
+        if 7 in self.metrics:
+            metrics_list = metrics_calculator.calculate_all_the_above()
+        else:
+            if 1 in self.metrics:
+                metrics_list["Accuracy"] = metrics_calculator.calculate_accuracy()
+            if 2 in self.metrics:
+                metrics_list["Error Rate"] = metrics_calculator.calculate_error_rate()
+            if 3 in self.metrics:
+                metrics_list["Sensitivity"] = metrics_calculator.calculate_sensitivity()
+            if 4 in self.metrics:
+                metrics_list["Specificity"] = metrics_calculator.calculate_specificity()
+            if 5 in self.metrics:
+                metrics_list["Geometric Mean"] = metrics_calculator.calculate_geometric_mean()
 
-    for thresh in thresholds:
-        TP = np.sum((y_score_all >= thresh) & (y_test_all == 4))
-        FP = np.sum((y_score_all >= thresh) & (y_test_all == 2))
-        FN = np.sum((y_score_all < thresh) & (y_test_all == 4))
-        TN = np.sum((y_score_all < thresh) & (y_test_all == 2))
+        return metrics_list
 
-        tpr = TP / (TP + FN) if (TP + FN) > 0 else 0
-        fpr = FP / (FP + TN) if (FP + TN) > 0 else 0
+    def calculate_auc(self, y_test: pd.Series, y_score: pd.Series):
+        thresholds = np.linspace(0, 1, 100)
+        tpr_list = []
+        fpr_list = []
 
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
+        for thresh in thresholds:
+            TP = np.sum((y_score >= thresh) & (y_test == 4))
+            FP = np.sum((y_score >= thresh) & (y_test == 2))
+            FN = np.sum((y_score < thresh) & (y_test == 4))
+            TN = np.sum((y_score < thresh) & (y_test == 2))
 
+            tpr = TP / (TP + FN) if (TP + FN) > 0 else 0
+            fpr = FP / (FP + TN) if (FP + TN) > 0 else 0
 
-        # Ordinamento per FPR crescente
-    fpr_array = np.array(fpr_list)
-    tpr_array = np.array(tpr_list)
-    sorted_idx = np.argsort(fpr_array)
-    fpr_array = fpr_array[sorted_idx]
-    tpr_array = tpr_array[sorted_idx]
-    auc = np.trapezoid(tpr_array,fpr_array)
-    auc_list = np.append(auc_list, auc)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
 
+            # Ordinamento per FPR crescente
+        fpr_array = np.array(fpr_list)
+        tpr_array = np.array(tpr_list)
+        sorted_idx = np.argsort(fpr_array)
+        fpr_array = fpr_array[sorted_idx]
+        tpr_array = tpr_array[sorted_idx]
+        auc = np.trapezoid(tpr_array, fpr_array)
+        return auc, tpr_array, fpr_array
 
-    sum_metrics = {}
-    for fold in metrics_list.values():
-        for key, value in fold.items():
-            if key not in sum_metrics:
-                sum_metrics[key] = 0
-            sum_metrics[key] += value
+    def evaluate(self):
+        K_split = int(input("inserisci K: "))
 
-    num_folds = len(metrics_list)
-    mean_metrics = {key: sum_metrics[key]/num_folds for key in sum_metrics}
-    mean_metrics["AUC"] = auc
-    print("\nMedie delle metriche su tutti i fold:")
-    print(mean_metrics)
+        folds = np.array_split(self.dataset, K_split)
 
+        metrics_list = dict()
+        y_test_all = np.array([])
+        y_score_all = np.array([])
+        y_pred_all = np.array([])
 
-    print(f"\nAUC (ROC): {np.mean(auc_list)}")
+        for i in range(K_split):
+            x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(folds, i, K_split)
 
-    # --- Traccia ROC ---
-    plt.figure()
-    plt.plot(fpr_array, tpr_array, marker='o', linestyle='-', color='blue')
-    plt.plot([0, 1], [0, 1], linestyle='--', color='gray')
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve")
-    plt.show()
+            model = MockKNN(k=5, seed=i, error_rate=0.3)
+            model.fit(x_train, y_train)
+            y_pred, y_score = model.predict(x_test, y_test=y_test)
 
-    classes = ['2 (Benigno)', '4 (Maligno)']
+            y_test_all = np.append(y_test_all, y_test)
+            y_score_all = np.append(y_score_all, y_score)
+            y_pred_all = np.append(y_pred_all, y_pred)
 
-    plt.figure(figsize=(5,4))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Greens)
-    plt.title("Confusion Matrix Normalizzata")
-    plt.colorbar()
+            metrics_list[i] = self.calculate_metrics(y_test, y_pred)
 
-    # Tick sugli assi
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes)
-    plt.yticks(tick_marks, classes)
+        mean_metrics = calculate_mean_metrics(metrics_list)
+        if 6 in self.metrics or 7 in self.metrics:
+            auc, tpr_array, fpr_array = self.calculate_auc(y_test_all, y_score_all)
+            mean_metrics["AUC"] = auc
+            plot_data.plot_ROC(fpr_array, tpr_array)
 
-    cm_all = confusion_matrix_binary(y_test_all,y_pred_all,4,2,True)
+        print("\nMedie delle metriche su tutti i fold:")
+        print(mean_metrics)
 
-    # Scrive i valori nella matrice
-    thresh = cm_all.max() / 2
-    for i in range(cm_all.shape[0]):
-        for j in range(cm_all.shape[1]):
-            plt.text(j, i, f"{cm_all[i,j]:.2f}",
-                    horizontalalignment="center",
-                    color="black" if cm_all[i,j] > thresh else "black")
-
-    plt.ylabel('Actual')
-    plt.xlabel('Predicted')
-    plt.tight_layout()
-    plt.show()
+        cm_all = confusion_matrix_binary(y_test_all, y_pred_all)
+        plot_data.plot_confusion_matrix(cm_all)
+        plot_data.save_output_result(mean_metrics, metrics_list)
