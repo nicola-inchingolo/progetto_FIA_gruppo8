@@ -82,8 +82,14 @@ if choice == "1":
     he.evaluate()
 elif choice == "2":
     print("Running K-Fold validation...")
-
-    kfe = kFoldEvaluator(df, metrics_array, 12)
+    try:
+        K_split = int(input("inserisci K: "))
+        if (K_split > num_samples):
+            raise ValueError
+    except ValueError:
+        print("Errore: inserisci un numero valido")
+        exit(1)
+    kfe = kFoldEvaluator(df, metrics_array, K_split)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")
