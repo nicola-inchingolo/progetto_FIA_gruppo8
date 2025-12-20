@@ -83,7 +83,7 @@ if choice == "1":
 elif choice == "2":
     print("Running K-Fold validation...")
 
-    kfe = kFoldEvaluator(df, metrics_array, 0)
+    kfe = kFoldEvaluator(df, metrics_array, 12)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")

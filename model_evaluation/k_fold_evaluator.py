@@ -7,31 +7,57 @@ from metrics import metrics
 import plot_data
 from metrics import confusion_matrix_binary
 from metrics import calculate_mean_metrics
-from holdout_evaluator import evaluator
+from Evaluator import Evaluator
 
 
 # K esperimenti da inserire
-class kFoldEvaluator(evaluator):
+class kFoldEvaluator(Evaluator):
 
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int):
         super().__init__(datasetToEvaluate, metrics)
+
+        if not isinstance(K_tests, int):
+            raise TypeError("K_tests must be an integer")
+        if K_tests < 2 or K_tests > len(datasetToEvaluate):
+            raise ValueError("K_tests must be between 2 and the number of samples")
         self.K_tests = K_tests
 
-    def split_dataset_with_strategy(self, folds: np.array, i: int, K_split: int):
-        test_section = folds[i]
-        train_section = pd.concat(folds[j] for j in range(K_split) if j != i)
+    def split_dataset_with_strategy(self, folds: np.array, i: int):
 
-        x_train = train_section.drop(columns=["ID", "Sample code number", "Class"])
+        required_cols = {"ID", "Sample code number", "Class"}
+        if not required_cols.issubset(self.dataset.columns):
+            raise KeyError(f"Dataset must contain columns {required_cols}")
+
+        test_section = folds[i]
+        train_section = pd.concat(folds[j] for j in range(self.K_tests) if j != i)
+
+        if test_section.empty or train_section.empty:
+            raise ValueError("Train or test fold is empty")
+
+        x_train = train_section.drop(columns=required_cols)
         y_train = train_section["Class"]
-        x_test = test_section.drop(columns=["ID", "Sample code number", "Class"])
+        x_test = test_section.drop(columns=required_cols)
         y_test = test_section["Class"]
 
         return x_train, x_test, y_train, y_test
 
     def calculate_metrics(self, y_test: pd.Series, y_pred: pd.Series):
+
+        print(type(y_test))
+
+        if len(y_test) == 0:
+            raise ValueError("y_test is empty")
+        if len(y_pred) == 0:
+            raise ValueError("y_pred is empty")
+
+        if len(y_test) != len(y_pred):
+            raise ValueError("y_test, y_pred and y_score must have the same length")
+
         cm = confusion_matrix_binary(y_test, y_pred)
+        if cm.shape != (2, 2):
+            raise ValueError("Confusion matrix must be 2x2")
+
         print("Confusion Matrix:")
-        print(type(cm))
 
         print(f"TN: {cm[0][0]}")
         print(f"FP: {cm[0][1]}")
@@ -40,6 +66,10 @@ class kFoldEvaluator(evaluator):
 
         metrics_calculator = metrics(cm)
         metrics_list = dict()
+
+        valid_metrics = set(range(1, 8))
+        if not set(self.metrics).issubset(valid_metrics):
+            raise ValueError("Invalid metric index (valid values are 1–7)")
 
         if 7 in self.metrics:
             metrics_list = metrics_calculator.calculate_all_the_above()
@@ -58,6 +88,17 @@ class kFoldEvaluator(evaluator):
         return metrics_list
 
     def calculate_auc(self, y_test: pd.Series, y_score: pd.Series):
+
+        print("ACU: ", type(y_test))
+
+        if len(y_test) == 0:
+            raise ValueError("y_test is empty")
+        if len(y_score) == 0:
+            raise ValueError("y_score is empty")
+
+        if np.any((y_score < 0) | (y_score > 1)):
+            raise ValueError("y_score values must be in range [0, 1]")
+
         thresholds = np.linspace(0, 1, 100)
         tpr_list = []
         fpr_list = []
@@ -84,37 +125,39 @@ class kFoldEvaluator(evaluator):
         return auc, tpr_array, fpr_array
 
     def evaluate(self):
-        K_split = int(input("inserisci K: "))
+        try:
+            folds = np.array_split(self.dataset, self.K_tests)
 
-        folds = np.array_split(self.dataset, K_split)
+            metrics_list = dict()
+            y_test_all = np.array([])
+            y_score_all = np.array([])
+            y_pred_all = np.array([])
 
-        metrics_list = dict()
-        y_test_all = np.array([])
-        y_score_all = np.array([])
-        y_pred_all = np.array([])
+            for i in range(self.K_tests):
+                x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(folds, i)
 
-        for i in range(K_split):
-            x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(folds, i, K_split)
+                model = MockKNN(k=5, seed=i, error_rate=0.3)
+                model.fit(x_train, y_train)
+                y_pred, y_score = model.predict(x_test, y_test=y_test)
 
-            model = MockKNN(k=5, seed=i, error_rate=0.3)
-            model.fit(x_train, y_train)
-            y_pred, y_score = model.predict(x_test, y_test=y_test)
+                y_test_all = np.append(y_test_all, y_test)
+                y_score_all = np.append(y_score_all, y_score)
+                y_pred_all = np.append(y_pred_all, y_pred)
 
-            y_test_all = np.append(y_test_all, y_test)
-            y_score_all = np.append(y_score_all, y_score)
-            y_pred_all = np.append(y_pred_all, y_pred)
+                metrics_list[i] = self.calculate_metrics(y_test, y_pred)
 
-            metrics_list[i] = self.calculate_metrics(y_test, y_pred)
+            mean_metrics = calculate_mean_metrics(metrics_list)
+            if 6 in self.metrics or 7 in self.metrics:
+                auc, tpr_array, fpr_array = self.calculate_auc(y_test_all, y_score_all)
+                mean_metrics["AUC"] = auc
+                plot_data.plot_ROC(fpr_array, tpr_array)
 
-        mean_metrics = calculate_mean_metrics(metrics_list)
-        if 6 in self.metrics or 7 in self.metrics:
-            auc, tpr_array, fpr_array = self.calculate_auc(y_test_all, y_score_all)
-            mean_metrics["AUC"] = auc
-            plot_data.plot_ROC(fpr_array, tpr_array)
+            print("\nMedie delle metriche su tutti i fold:")
+            print(mean_metrics)
 
-        print("\nMedie delle metriche su tutti i fold:")
-        print(mean_metrics)
+            cm_all = confusion_matrix_binary(y_test_all, y_pred_all)
+            plot_data.plot_confusion_matrix(cm_all)
+            plot_data.save_output_result(mean_metrics, metrics_list)
 
-        cm_all = confusion_matrix_binary(y_test_all, y_pred_all)
-        plot_data.plot_confusion_matrix(cm_all)
-        plot_data.save_output_result(mean_metrics, metrics_list)
+        except Exception as e:
+            raise RuntimeError("K-fold Evaluation failed, something goes wrong") from e
