@@ -94,32 +94,26 @@ class KNNClassifier:
                 
         return np.array(predictions)
        
-    def predict_proba(self, X_test, pos_label):
+    def predict_proba(self, X_test, pos_label=4):
         """
-        Calculates the prediction confidence for the test set.
-    
-        It computes the probability of the positive class (Malignant) based on the neighbors.
-        If the probability indicates the negative class is more likely (prob <= 0.51), 
-        it inverts the score (1 - prob) to return the probability of the majority class.
-        
+        Caluclates the PURE probability that the sample is Malignant (Class 4).
+        Used to build the ROC curve.
         """
         X_test = np.array(X_test)
         y_proba = []
-        pos_label= 4 # Definiamo il label positivo come "Maligno" (4)
         
         for x in X_test:
             neighbors_labels = self._get_k_neighbors(x)
-            # Conta quanti vicini sono "Maligni" (pos_label)
+            
+            # 1. Conta quanti vicini sono Maligni 
             positive_votes = np.sum(neighbors_labels == pos_label)
-            # Calcola la frazione: voti_positivi / k
+            
+            # 2. Calcola la percentuale 
             prob = positive_votes / self.k
             
-            if prob > 0.51:
-                y_proba.append(prob)
-            else :
-                prob = 1-prob
-                y_proba.append(prob)
-                
+            # 3. Salva il dato grezzo
+            y_proba.append(prob)
+            
         return np.array(y_proba)
     
        
