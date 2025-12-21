@@ -94,6 +94,35 @@ class KNNClassifier:
                 
         return np.array(predictions)
        
+    def predict_proba(self, X_test, pos_label):
+        """
+        Calculates the prediction confidence for the test set.
+    
+        It computes the probability of the positive class (Malignant) based on the neighbors.
+        If the probability indicates the negative class is more likely (prob <= 0.51), 
+        it inverts the score (1 - prob) to return the probability of the majority class.
+        
+        """
+        X_test = np.array(X_test)
+        y_proba = []
+        pos_label= 4 # Definiamo il label positivo come "Maligno" (4)
+        
+        for x in X_test:
+            neighbors_labels = self._get_k_neighbors(x)
+            # Conta quanti vicini sono "Maligni" (pos_label)
+            positive_votes = np.sum(neighbors_labels == pos_label)
+            # Calcola la frazione: voti_positivi / k
+            prob = positive_votes / self.k
+            
+            if prob > 0.51:
+                y_proba.append(prob)
+            else :
+                prob = 1-prob
+                y_proba.append(prob)
+                
+        return np.array(y_proba)
+    
+       
 # --- BLOCCO MAIN PER IL TEST ---
 if __name__ == "__main__":
     print("--- Test del KNN con Distanza di Minkowski (p=2) (k=3)---")
