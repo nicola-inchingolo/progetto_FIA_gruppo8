@@ -1,1 +1,0 @@
-print("è tempo di iniziare il progetto!")
