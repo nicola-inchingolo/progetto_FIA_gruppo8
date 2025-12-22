@@ -20,7 +20,7 @@ class KNNClassifier:
     
            
     
-    def __init__(self, k: int = 3, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None, p: int = 2):
+    def __init__(self, k: int, p: int, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None):
         self.x_data_train = x_data_train      # Store the features for the training data.
         self.y_data_train = y_data_train      # Store the labels for the training data.
         self.k = k                  # Number of neighbors to consider.
