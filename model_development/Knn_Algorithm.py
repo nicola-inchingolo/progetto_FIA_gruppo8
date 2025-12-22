@@ -68,54 +68,50 @@ class KNNClassifier:
         # 3. Restituisci le LABELS corrispondenti a quegli indici
         return self.y_data_train[k_indices]
         
-    def predict(self, X_test):
+    def predict(self, X_test, pos_label=4):
         """
-        Predicts the labels for a set of test points.
+        Predicts the labels for a set of test points
+        and calculates the PURE probability that the sample is Malignant (Class 4).
+        Used to build the ROC curve.
         """
+        
         X_test = np.array(X_test)
         predictions = []
-
+        y_proba = []
+        
         for x in X_test:
-            # 1. Ottieni le label dei vicini
+            
+            # starting the prediction process for each test point x
+            
+            # 1. get k nearest neighbors
             neighbors_labels = self._get_k_neighbors(x)
             
-            # 2. Conta le occorrenze (Votazione)
+            # 2. count the votes for each class
             counts = Counter(neighbors_labels)
             max_votes = max(counts.values())
             
-            # 3. Trova i vincitori (gestione pareggio)
+            # 3. find all classes with max votes (to handle ties)
             candidates = [label for label, count in counts.items() if count == max_votes]
             
-            # 4. Assegna label (Random se pareggio, altrimenti il vincitore)
+            # 4. Assign label (Random if tie, otherwise the winner)
             if len(candidates) > 1:
                 predictions.append(random.choice(candidates))
             else:
                 predictions.append(candidates[0])
                 
-        return np.array(predictions)
-       
-    def predict_proba(self, X_test, pos_label=4):
-        """
-        Caluclates the PURE probability that the sample is Malignant (Class 4).
-        Used to build the ROC curve.
-        """
-        X_test = np.array(X_test)
-        y_proba = []
-        
-        for x in X_test:
-            neighbors_labels = self._get_k_neighbors(x)
+            # Calculate the raw probability of being Malignant (Class 4)
             
-            # 1. Conta quanti vicini sono Maligni 
+            # 1. Count how many neighbors are Malignant 
             positive_votes = np.sum(neighbors_labels == pos_label)
             
-            # 2. Calcola la percentuale 
+            # 2. Calculate the percentage 
             prob = positive_votes / self.k
             
-            # 3. Salva il dato grezzo
+            # 3. Save the raw data
             y_proba.append(prob)
             
-        return np.array(y_proba)
-    
+        return np.array(y_proba) , np.array(predictions)
+     
        
 # --- BLOCCO MAIN PER IL TEST ---
 if __name__ == "__main__":
@@ -141,7 +137,7 @@ if __name__ == "__main__":
     X_test = np.array([
         [1.1, 1.1], 
         [5.1, 5.1], 
-        [3.0, 3.0] 
+        [4.0, 2.0] 
     ])
 
     try:
