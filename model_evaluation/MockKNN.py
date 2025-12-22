@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+import pandas as pd
+
 
 class MockKNN:
     def __init__(self, k=3, seed=None, error_rate=0.3):
