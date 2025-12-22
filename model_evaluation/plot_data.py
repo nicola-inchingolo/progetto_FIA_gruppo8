@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
+#plotta i grafici su un png
 
 def plot_ROC(fpr_array: np.array, tpr_array: np.array):
     if fpr_array is None:
@@ -95,17 +96,20 @@ def save_output_result(metrics: dict):
         raise RuntimeError(f"Failed writing output result on CSV at {output_path}") from e
 
 
+"""
 def save_output_result(metrics: dict, k_metrics: dict = None):
-    """
+
     Salva le metriche in un CSV.
     - metrics: dizionario con le metriche globali (medie)
     - k_metrics: dizionario con le metriche per fold (opzionale)
-    """
+
 
     if not isinstance(metrics, dict):
         raise TypeError("metrics must be dict")
     if k_metrics is not None and not isinstance(k_metrics, dict):
         raise TypeError("k_metrics must be dict")
+
+
 
     output_dir = "output_result"
     os.makedirs(output_dir, exist_ok=True)
@@ -143,3 +147,4 @@ def save_output_result(metrics: dict, k_metrics: dict = None):
             raise RuntimeError(f"Failed reading output result on CSV at {output_path}")
     except OSError as e:
         raise RuntimeError(f"Failed writing output result on CSV at {output_path}")
+        """

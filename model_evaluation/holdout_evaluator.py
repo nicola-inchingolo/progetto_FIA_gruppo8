@@ -5,11 +5,15 @@ from MockKNN import MockKNN
 from metrics import metrics
 from metrics import confusion_matrix_binary
 import matplotlib.pyplot as plt
-from Evaluator import Evaluator
+from Evaluator import evaluator
 import plot_data
 
 
-class holdout_evaluator(Evaluator):
+# classe generale evaluator deve avere come parametri il numero di esperimenti K, le metriche da calcolare
+# il dataset cleaned la percentuale di divisione nel caso dell'holdout
+
+
+class holdout_evaluator(evaluator):
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, train_percentage: float):
         super().__init__(datasetToEvaluate, metrics)
         # Exception
@@ -45,100 +49,6 @@ class holdout_evaluator(Evaluator):
 
         return x_train, x_test, y_train, y_test
 
-    def calculate_metrics(self, y_test: pd.Series, y_pred: pd.Series, y_score: pd.Series):
-
-        print(type(y_test))
-        print(type(y_pred))
-
-        if len(y_test) == 0:
-            raise ValueError("y_test is empty")
-        if len(y_pred) == 0:
-            raise ValueError("y_pred is empty")
-        if len(y_score) == 0:
-            raise ValueError("y_score is empty")
-
-        if len(y_test) != len(y_pred) or len(y_test) != len(y_score):
-            raise ValueError("y_test, y_pred and y_score must have the same length")
-
-        # making confusion matrix
-        cm = confusion_matrix_binary(y_test, y_pred)
-
-        if cm.shape != (2, 2):
-            raise ValueError("Confusion matrix must be 2x2")
-
-        print("Confusion Matrix:")
-
-        print(f"TN: {cm[0][0]}")
-        print(f"FP: {cm[0][1]}")
-        print(f"FN: {cm[1][0]}")
-        print(f"TP: {cm[1][1]}")
-
-        metrics_calculator = metrics(cm)
-        metrics_list = dict()
-
-        valid_metrics = set(range(1, 8))
-        if not set(self.metrics).issubset(valid_metrics):
-            raise ValueError("Invalid metric index (valid values are 1–7)")
-
-        if 7 in self.metrics:
-            metrics_list = metrics_calculator.calculate_all_the_above()
-            metrics_list["AUC"] = self.calculate_auc(y_test, y_score)
-
-        else:
-            if 1 in self.metrics:
-                metrics_list["Accuracy"] = metrics_calculator.calculate_accuracy()
-            if 2 in self.metrics:
-                metrics_list["Error Rate"] = metrics_calculator.calculate_error_rate()
-            if 3 in self.metrics:
-                metrics_list["Sensitivity"] = metrics_calculator.calculate_sensitivity()
-            if 4 in self.metrics:
-                metrics_list["Specificity"] = metrics_calculator.calculate_specificity()
-            if 5 in self.metrics:
-                metrics_list["Geometric Mean"] = metrics_calculator.calculate_geometric_mean()
-            if 6 in self.metrics:
-                metrics_list["AUC"] = self.calculate_auc(y_test, y_score)
-
-        return metrics_list, cm
-
-    def calculate_auc(self, y_test: pd.Series, y_score: pd.Series):
-
-        if len(y_test) == 0:
-            raise ValueError("y_test is empty")
-        if len(y_score) == 0:
-            raise ValueError("y_score is empty")
-
-        if not set(y_test.unique()).issubset({2, 4}):
-            raise ValueError("y_test must contain only class labels {2, 4}")
-
-        if np.any((y_score < 0) | (y_score > 1)):
-            raise ValueError("y_score values must be in range [0, 1]")
-
-        # Calcolo ROC per più soglie
-        # valore soglia potrebbe diventare variabile
-        thresholds = np.linspace(0, 1, 100)
-        tpr_list = []
-        fpr_list = []
-
-        for thresh in thresholds:
-            TP = np.sum((y_score >= thresh) & (y_test == 4))
-            FP = np.sum((y_score >= thresh) & (y_test == 2))
-            FN = np.sum((y_score < thresh) & (y_test == 4))
-            TN = np.sum((y_score < thresh) & (y_test == 2))
-
-            tpr = TP / (TP + FN) if (TP + FN) > 0 else 0
-            fpr = FP / (FP + TN) if (FP + TN) > 0 else 0
-
-            tpr_list.append(tpr)
-            fpr_list.append(fpr)
-
-        sorted_idx = np.argsort(fpr_list)
-        fpr_list = np.array(fpr_list)[sorted_idx]
-        tpr_list = np.array(tpr_list)[sorted_idx]
-        auc = np.trapezoid(tpr_list, fpr_list)
-        plot_data.plot_ROC(fpr_list, tpr_list)
-
-        return auc
-
     def evaluate(self):
         try:
             x_train, x_test, y_train, y_test = self.split_dataset_with_strategy()
@@ -150,7 +60,12 @@ class holdout_evaluator(Evaluator):
 
             print(y_pred)
 
-            metrics_list, cm = self.calculate_metrics(y_test, y_pred, y_score)
+            metrics_list, cm = self.calculate_metrics(y_test, y_pred)
+
+            if 6 in self.metrics or 7 in self.metrics:
+                auc, tpr_array, fpr_array = self.calculate_auc(y_test, y_score)
+                metrics_list["AUC"] = auc
+                plot_data.plot_ROC(fpr_array, tpr_array)
 
             plot_data.plot_confusion_matrix(cm)
             plot_data.save_output_result(metrics_list)
