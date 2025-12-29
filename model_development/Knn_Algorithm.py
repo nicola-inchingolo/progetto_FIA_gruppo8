@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import random
 from collections import Counter
+from abc import ABC, abstractmethod
+from distance_strategy import DistanceFactory
 
 
 class KNNClassifier:
@@ -18,31 +20,19 @@ class KNNClassifier:
     
            
     
-    def __init__(self, k: int = 3, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None, p: int = 2):
+    def __init__(self, k: int, p: int, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None):
         self.x_data_train = x_data_train      # Store the features for the training data.
         self.y_data_train = y_data_train      # Store the labels for the training data.
         self.k = k                  # Number of neighbors to consider.
         self.p = p  # Number of the strategy to consider.
+        self.distance_strategy = DistanceFactory.get_distance_strategy(p)  # Initialize the distance strategy
         
     """
         Identifies the k nearest neighbors by calculating distances against the full training set.
         It returns the labels of the k points with the lowest distance to the test point.
                 
     """
-    def _minkowski_distance_vectorized(self, x, p):
-        
-    # RICORDIAMOCI DI METTERE INPUT(P) NEL FILE MAIN COSì DA SCEGLIERE QUALE STRATEGIA USARE    
     
-        distance = np.sum(np.abs(self.x_data_train - x) ** p, axis=1) ** (1 / p)
-        
-        return distance
-    """
-        Calcola la distanza di Minkowski (generalizzazione di Euclidea e Manhattan).
-        Formula: (sum(|x - y|^p))^(1/p)
-        Parametri: 
-        Se p=2 -> Distanza Euclidea
-        Se p=1 -> Distanza di Manhattan
-    """
     
     def fit(self, x_data_train, y_data_train):
         """
@@ -58,7 +48,7 @@ class KNNClassifier:
         """
         # 1. Calcola la distanza tra il punto x_test e TUTTI i punti di training
         distances = []
-        distances = self._minkowski_distance_vectorized(x, self.p)
+        distances = self.distance_strategy.compute_distance(self.x_data_train, x)
         
         # 2. Ottieni gli indici che ordinerebbero l'array delle distanze (dal più piccolo al più grande)
         # np.argsort restituisce gli indici, non i valori.
@@ -114,49 +104,66 @@ class KNNClassifier:
      
        
 # --- BLOCCO MAIN PER IL TEST ---
+# --- BLOCCO MAIN PER IL TEST ---
 if __name__ == "__main__":
-    print("--- Test del KNN con Distanza di Minkowski (p=2) (k=3)---")
+    print("--- Test del KNN con Design Patterns (Strategy) ---")
 
-    # 1. Dati di Training Fittizi (Features: Altezza, Peso - Esempio astratto)
+    # 1. Dati di Training Fittizi
     # Gruppo A (Classe 2): Valori bassi
-    train_A = [[1.0, 1.1], [1.2, 1.0], [0.9, 0.8], [2.0, 2.1]]
+    train_A = [[1.0, 1.1], [1.2, 1.0], [0.9, 0.8], [2.0, 2.1], [1.5, 1.3], [0.8, 1.2]]
     # Gruppo B (Classe 4): Valori alti
-    train_B = [[5.0, 5.1], [5.2, 5.3], [6.0, 5.9], [5.5, 5.5]]
+    train_B = [[5.0, 5.1], [5.2, 5.3], [6.0, 5.9], [5.5, 5.5], [5.8, 5.2], [4.9, 5.0]]
+    # Gruppo C (Classe 2): Alcuni punti intermedi-bassi per creare ambiguità
+    train_C = [[2.5, 2.5], [2.8, 2.7]]
+    # Gruppo D (Classe 4): Alcuni punti intermedi-alti per creare ambiguità
+    train_D = [[3.5, 3.5], [3.2, 3.3]]
     
-    x_data_train = np.array(train_A + train_B)
+    x_data_train = np.array(train_A + train_B + train_C + train_D)
     
     # Labels (2 = Benigno/A, 4 = Maligno/B)
-    y_data_train = np.array([2] * len(train_A) + [4] * len(train_B))
+    y_data_train = np.array([2] * len(train_A) + [4] * len(train_B) + [2] * len(train_C) + [4] * len(train_D))
 
     print(f"Dati di Training caricati: {len(x_data_train)} campioni.")
 
     # 2. Dati di Test Fittizi
-    # Punto 1: Vicino al gruppo A [1.1, 1.1] -> Ci aspettiamo 2
-    # Punto 2: Vicino al gruppo B [5.1, 5.1] -> Ci aspettiamo 4
-    # Punto 3: Punto intermedio/ambiguo [3.0, 3.0] -> Dipende dai vicini
+    # Punti progettati per testare diverse situazioni:
     X_test = np.array([
-        [1.1, 1.1], 
-        [5.1, 5.1], 
-        [4.0, 2.0] 
+        [1.1, 1.1],   # Chiaramente classe 2 (vicino a train_A)
+        [5.1, 5.1],   # Chiaramente classe 4 (vicino a train_B)
+        [3.0, 3.0],   # PUNTO AMBIGUO: equidistante tra classi - possibile pareggio!
+        [2.9, 2.9],   # ALTRO PUNTO AMBIGUO: vicino a confine - possibile pareggio!
+        [3.4, 3.4],   # ALTRO PUNTO AMBIGUO: tra i cluster intermedi - possibile pareggio!
+        [0.5, 0.5],   # Estremo basso (classe 2)
+        [6.5, 6.5]    # Estremo alto (classe 4)
     ])
 
     try:
         print(f"Dati di Test da classificare:\n{X_test}\n")
 
         # 3. Creazione e Configurazione Modello
-        # Usiamo p=2 (Euclidea)
-        knn = KNNClassifier(k=3, p=2)
+        # La Factory creerà automaticamente la distanza corretta per p=2 (Euclidea)
+        # IMPORTANTE: k=4 (pari) per permettere pareggi 2-2 e attivare random.choice()
+        knn = KNNClassifier(k=4, p=2)
             
         # 4. Addestramento (Fitting)
         knn.fit(x_data_train, y_data_train)
             
         # 5. Predizione
-        predictions = knn.predict(X_test)
+        # MODIFICA IMPORTANTE: Ora il metodo restituisce DUE array.
+        # probs -> Serve per la curva ROC (valori float tra 0.0 e 1.0)
+        # predictions -> Serve per la Confusion Matrix (valori 2 o 4)
+        probs, predictions = knn.predict(X_test, pos_label=4)
             
         # 6. Stampa Risultati
         print("--- Risultati Predizione ---")
+        print(f"{'Punto':<20} | {'Classe Predetta':<15} | {'Prob. Maligno (ROC)':<20}")
+        print("-" * 60)
+        
         for i, point in enumerate(X_test):
             point_str = str(point)
-            print(f"Punto {point_str} -> Classe Predetta: {predictions[i]}")
+            # Stampiamo sia la classe decisa che la probabilità calcolata
+            print(f"{point_str:<20} | {predictions[i]:<15} | {probs[i]:.4f}")
+            
     except Exception as e:
+        # Questo cattura errori come problemi con la Factory o dati mancanti
         print(f"Errore durante il test del KNN: {e}")
