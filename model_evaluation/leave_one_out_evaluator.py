@@ -10,11 +10,36 @@ import plot_data
 from Evaluator import evaluator
 
 
+"""
+The leave-one-out evaluator class implements the leave-one-out
+cross-validation strategy.
+
+Each sample is used once as a test set while the remaining samples
+are used for training.
+"""
 class LeaveOneOutEvaluator(evaluator):
 
+    """
+    Initializes the leave-one-out evaluator.
+
+    @:param datasetToEvaluate: Dataset used for evaluation.
+    @:param metrics: Array of metric identifiers to compute.
+    """
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array):
         super().__init__(datasetToEvaluate, metrics)
 
+    """
+    Splits the dataset into training and test sets according to the
+    leave-one-out strategy.
+
+    @:param size: Index of the sample used as test set.
+
+    @:return: Tuple containing training features, test features,
+             training labels and test labels.
+
+    @:raise ValueError: If the index is out of range.
+    @:raise KeyError: If required columns are missing from the dataset.
+    """
     def split_dataset_with_strategy(self, size: int):
 
         if size < 0 or size >= len(self.dataset):
@@ -37,14 +62,21 @@ class LeaveOneOutEvaluator(evaluator):
 
         return x_train, x_test, y_train, y_test
 
+    """
+    Executes the leave-one-out evaluation procedure.
+
+    Trains and evaluates the model for each sample, computes the mean
+    of the selected metrics, calculates AUC if required, and produces
+    plots and output files.
+
+    @:raise RuntimeError: If the leave-one-out evaluation process fails.
+    """
     def evaluate(self):
         try:
             rows, _ = self.dataset.shape
 
             size = 0
             metrics_list = dict()
-            tpr_array = np.array([])  # array vuoto
-            fpr_array = np.array([])
 
             y_test_all = np.array([])
             y_score_all = np.array([])

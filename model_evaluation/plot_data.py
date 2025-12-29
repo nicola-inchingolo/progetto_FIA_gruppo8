@@ -6,8 +6,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-#plotta i grafici su un png
 
+"""
+Plots the ROC curve given false positive and true positive rates.
+
+@:param fpr_array: Array of false positive rates.
+@:param tpr_array: Array of true positive rates.
+
+@:raise ValueError: If arrays are None, empty, or have different lengths.
+@:raise RuntimeError: If plotting fails.
+"""
 def plot_ROC(fpr_array: np.array, tpr_array: np.array):
     if fpr_array is None:
         raise ValueError("false positive rate array cannot be None")
@@ -23,7 +31,6 @@ def plot_ROC(fpr_array: np.array, tpr_array: np.array):
         raise ValueError("tpr cannot be empty")
 
     try:
-        # Traccia ROC
         plt.figure()
         plt.plot(fpr_array, tpr_array, marker='o', linestyle='-', color='violet')
         plt.plot([0, 1], [0, 1], linestyle='--', color='gray')
@@ -35,6 +42,14 @@ def plot_ROC(fpr_array: np.array, tpr_array: np.array):
         raise RuntimeError("Failed plotting ROC curve") from e
 
 
+"""
+Plots a 2x2 confusion matrix.
+
+@:param cm: Confusion matrix of shape 2x2.
+
+@:raise ValueError: If cm is None or not 2x2.
+@:raise RuntimeError: If plotting fails.
+"""
 def plot_confusion_matrix(cm: np.array):
     if cm is None:
         raise ValueError("Confusione Matrix cannot be NOne")
@@ -70,6 +85,14 @@ def plot_confusion_matrix(cm: np.array):
         raise RuntimeError("Failed plotting Confusion Matrix") from e
 
 
+"""
+Saves evaluation metrics to a CSV file and prints the content.
+
+@:param metrics: Dictionary of metric names and values.
+
+@:raise TypeError: If metrics is not a dictionary.
+@:raise RuntimeError: If writing or reading the CSV fails.
+"""
 def save_output_result(metrics: dict):
     if not isinstance(metrics, dict):
         raise TypeError("metrics must be dict")

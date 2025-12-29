@@ -10,9 +10,25 @@ from metrics import calculate_mean_metrics
 from Evaluator import evaluator
 
 
-# K esperimenti da inserire
+"""
+The k-fold evaluator class implements the k-fold cross-validation strategy.
+
+The dataset is split into K folds, and the evaluation is performed K times,
+each time using a different fold as test set and the remaining folds as
+training set.
+"""
 class kFoldEvaluator(evaluator):
 
+    """
+    Initializes the k-fold evaluator.
+
+    @:param datasetToEvaluate: Dataset used for evaluation.
+    @:param metrics: Array of metric identifiers to compute.
+    @:param K_tests: Number of folds to use in k-fold cross-validation.
+
+    @:raise TypeError: If K_tests is not an integer.
+    @:raise ValueError: If K_tests is not between 2 and the number of samples.
+    """
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int):
         super().__init__(datasetToEvaluate, metrics)
 
@@ -22,6 +38,18 @@ class kFoldEvaluator(evaluator):
             raise ValueError("K_tests must be between 2 and the number of samples")
         self.K_tests = K_tests
 
+    """
+    Splits the dataset into training and test sets according to the k-fold strategy.
+
+    @:param folds: Array containing the dataset folds.
+    @:param i: Index of the fold used as test set.
+
+    @:return: Tuple containing training features, test features,
+    training labels and test labels.
+
+    @:raise KeyError: If required columns are missing from the dataset.
+    @:raise ValueError: If the training or test fold is empty.
+    """
     def split_dataset_with_strategy(self, folds: np.array, i: int):
 
         required_cols = {"ID", "Sample code number", "Class"}
@@ -41,6 +69,15 @@ class kFoldEvaluator(evaluator):
 
         return x_train, x_test, y_train, y_test
 
+    """
+    Executes the k-fold cross-validation evaluation.
+
+    Trains and evaluates the model on each fold, computes the mean of
+    the selected metrics, calculates AUC if required, and produces plots
+    and output files.
+
+    @:raise RuntimeError: If the k-fold evaluation process fails.
+    """
     def evaluate(self):
         try:
             folds = np.array_split(self.dataset, self.K_tests)

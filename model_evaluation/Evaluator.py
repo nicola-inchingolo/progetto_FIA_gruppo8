@@ -6,8 +6,25 @@ import pandas as pd
 from metrics import confusion_matrix_binary, metrics
 
 
-# da settare come abstract mediante ABC
+"""
+Abstract base class for evaluators.
+
+Defines the common interface and shared functionality
+for all evaluation strategies.
+"""
 class evaluator(ABC):
+
+    """
+    Initializes the evaluator with a dataset and a list of metrics.
+
+    @:param datasetToEvaluate: Dataset used for model evaluation.
+    @:param metrics: List or array of metric identifiers to compute.
+
+    @:raise TypeError: If datasetToEvaluate is not a pandas DataFrame.
+    @:raise ValueError: If datasetToEvaluate is empty.
+    @:raise TypeError: If metrics is not a list or numpy array.
+    @:raise ValueError: If metrics is empty.
+    """
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray):
 
         if not isinstance(datasetToEvaluate, pd.DataFrame):
@@ -22,10 +39,31 @@ class evaluator(ABC):
         self.dataset = datasetToEvaluate
         self.metrics = metrics
 
+    """
+    Abstract method that must be implemented by subclasses.
+
+    Executes the evaluation procedure according to the
+    selected evaluation strategy.
+    """
     @abstractmethod
     def evaluate(self):
         pass
 
+    """
+    Computes evaluation metrics and confusion matrix.
+
+    @:param y_test: True class labels.
+    @:param y_pred: Predicted class labels.
+
+    @:return: Tuple containing:
+        - dictionary of computed metrics
+        - confusion matrix (2x2)
+
+    @:raise ValueError: If input vectors are empty.
+    @:raise ValueError: If input vectors have different lengths.
+    @:raise ValueError: If confusion matrix is not 2x2.
+    @:raise ValueError: If invalid metric identifiers are provided.
+    """
     def calculate_metrics(self, y_test: pd.Series, y_pred: pd.Series):
 
         if len(y_test) == 0:
@@ -72,6 +110,20 @@ class evaluator(ABC):
 
         return metrics_list, cm
 
+    """
+    Computes the Area Under the ROC Curve (AUC).
+
+    @:param y_test: True class labels.
+    @:param y_score: Predicted scores or probabilities.
+
+    @:return: Tuple containing:
+            - AUC value
+            - True Positive Rate (TPR) array
+            - False Positive Rate (FPR) array
+
+    @:raise ValueError: If input vectors are empty.
+    @:raise ValueError: If y_score values are not in range [0, 1].
+    """
     def calculate_auc(self, y_test: pd.Series, y_score: pd.Series):
 
         if len(y_test) == 0:
@@ -82,8 +134,7 @@ class evaluator(ABC):
         if np.any((y_score < 0) | (y_score > 1)):
             raise ValueError("y_score values must be in range [0, 1]")
 
-        # Calcolo ROC per più soglie
-        # valore soglia potrebbe diventare variabile
+        # ROC computation using multiple thresholds
         thresholds = np.linspace(0, 1, 100)
         tpr_list = []
         fpr_list = []
