@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use("TkAgg")
 import csv
 import os
@@ -6,9 +7,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-
 """
-Plots the ROC curve given false positive and true positive rates.
+save the plot of the ROC curve given false positive and true positive rates.
 
 @:param fpr_array: Array of false positive rates.
 @:param tpr_array: Array of true positive rates.
@@ -16,19 +16,21 @@ Plots the ROC curve given false positive and true positive rates.
 @:raise ValueError: If arrays are None, empty, or have different lengths.
 @:raise RuntimeError: If plotting fails.
 """
-def plot_ROC(fpr_array: np.array, tpr_array: np.array):
+
+
+def plot_ROC(fpr_array: np.array, tpr_array: np.array, filename: str = "roc_curve.png"):
     if fpr_array is None:
         raise ValueError("false positive rate array cannot be None")
     if tpr_array is None:
         raise ValueError("True Positive Rate cannot be None")
-
     if len(fpr_array) != len(tpr_array):
         raise ValueError("fpr and tpr array must have the same length")
-
     if len(fpr_array) == 0:
         raise ValueError("fpr cannot be empty")
-    if len(tpr_array) == 0:
-        raise ValueError("tpr cannot be empty")
+
+    output_dir = "output_plots"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, filename)
 
     try:
         plt.figure()
@@ -37,24 +39,32 @@ def plot_ROC(fpr_array: np.array, tpr_array: np.array):
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
         plt.title("ROC Curve")
-        plt.show()
+
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.close()
     except Exception as e:
-        raise RuntimeError("Failed plotting ROC curve") from e
+        raise RuntimeError("Failed saving ROC curve") from e
 
 
 """
-Plots a 2x2 confusion matrix.
+Save the plot of a 2x2 confusion matrix.
 
 @:param cm: Confusion matrix of shape 2x2.
 
 @:raise ValueError: If cm is None or not 2x2.
 @:raise RuntimeError: If plotting fails.
 """
-def plot_confusion_matrix(cm: np.array):
+
+
+def plot_confusion_matrix(cm: np.array, filename: str = "confusion_matrix.png"):
     if cm is None:
-        raise ValueError("Confusione Matrix cannot be NOne")
+        raise ValueError("Confusion Matrix cannot be None")
     if cm.shape != (2, 2):
         raise ValueError("Confusion matrix must be 2x2")
+
+    output_dir = "output_plots"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, filename)
 
     try:
         classes = ['2 (Benigno)', '4 (Maligno)']
@@ -64,25 +74,25 @@ def plot_confusion_matrix(cm: np.array):
         plt.title("Confusion Matrix")
         plt.colorbar()
 
-        # Tick sugli assi
         tick_marks = np.arange(len(classes))
         plt.xticks(tick_marks, classes)
         plt.yticks(tick_marks, classes)
 
-        # Scrive i valori nella matrice
         thresh = cm.max() / 2
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
                 plt.text(j, i, f"{cm[i, j]}",
-                         horizontalalignment="center",
-                         color="black" if cm[i, j] > thresh else "black")
+                         ha="center",
+                         color="black")
 
         plt.ylabel('Actual')
         plt.xlabel('Predicted')
         plt.tight_layout()
-        plt.show()
+
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.close()
     except Exception as e:
-        raise RuntimeError("Failed plotting Confusion Matrix") from e
+        raise RuntimeError("Failed saving Confusion Matrix") from e
 
 
 """
@@ -93,6 +103,8 @@ Saves evaluation metrics to a CSV file and prints the content.
 @:raise TypeError: If metrics is not a dictionary.
 @:raise RuntimeError: If writing or reading the CSV fails.
 """
+
+
 def save_output_result(metrics: dict):
     if not isinstance(metrics, dict):
         raise TypeError("metrics must be dict")
