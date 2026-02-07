@@ -20,12 +20,13 @@ class KNNClassifier:
     
            
     
-    def __init__(self, k: int, p: int, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None):
+    def __init__(self, k: int, p: int, x_data_train: pd.DataFrame = None, y_data_train: pd.Series = None, seed: int = 42):
         self.x_data_train = x_data_train      # Store the features for the training data.
         self.y_data_train = y_data_train      # Store the labels for the training data.
         self.k = k                  # Number of neighbors to consider.
         self.p = p  # Number of the strategy to consider.
         self.distance_strategy = DistanceFactory.get_distance_strategy(p)  # Initialize the distance strategy
+        self.seed = seed  # Fixed seed for reproducibility in tie-breaking
         
     """
         Identifies the k nearest neighbors by calculating distances against the full training set.
@@ -65,6 +66,7 @@ class KNNClassifier:
         Used to build the ROC curve.
         """
         
+        random.seed(self.seed)
         X_test = np.array(X_test)
         predictions = []
         y_proba = []
