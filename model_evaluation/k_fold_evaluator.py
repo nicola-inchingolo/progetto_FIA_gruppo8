@@ -1,14 +1,11 @@
-from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-from MockKNN import MockKNN
-from metrics import metrics
 import plot_data
 from metrics import confusion_matrix_binary
 from metrics import calculate_mean_metrics
 from Evaluator import evaluator
-
+from model_development import Knn_Algorithm
 
 """
 The k-fold evaluator class implements the k-fold cross-validation strategy.
@@ -17,8 +14,9 @@ The dataset is split into K folds, and the evaluation is performed K times,
 each time using a different fold as test set and the remaining folds as
 training set.
 """
-class kFoldEvaluator(evaluator):
 
+
+class kFoldEvaluator(evaluator):
     """
     Initializes the k-fold evaluator.
 
@@ -29,14 +27,16 @@ class kFoldEvaluator(evaluator):
     @:raise TypeError: If K_tests is not an integer.
     @:raise ValueError: If K_tests is not between 2 and the number of samples.
     """
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int):
-        super().__init__(datasetToEvaluate, metrics)
+
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int,p:int,  seed: int = 42):
+        super().__init__(datasetToEvaluate, metrics,p)
 
         if not isinstance(K_tests, int):
             raise TypeError("K_tests must be an integer")
         if K_tests < 2 or K_tests > len(datasetToEvaluate):
             raise ValueError("K_tests must be between 2 and the number of samples")
         self.K_tests = K_tests
+        self.seed = seed
 
     """
     Splits the dataset into training and test sets according to the k-fold strategy.
@@ -50,6 +50,7 @@ class kFoldEvaluator(evaluator):
     @:raise KeyError: If required columns are missing from the dataset.
     @:raise ValueError: If the training or test fold is empty.
     """
+
     def split_dataset_with_strategy(self, folds: np.array, i: int):
 
         required_cols = {"ID", "Sample code number", "Class"}
@@ -78,9 +79,15 @@ class kFoldEvaluator(evaluator):
 
     @:raise RuntimeError: If the k-fold evaluation process fails.
     """
+
     def evaluate(self):
         try:
-            folds = np.array_split(self.dataset, self.K_tests)
+            shuffled_dataset = (
+                self.dataset
+                .sample(frac=1, random_state=self.seed)
+                .reset_index(drop=True)
+            )
+            folds = np.array_split(shuffled_dataset, self.K_tests)
 
             metrics_list = dict()
             y_test_all = np.array([])
@@ -90,9 +97,9 @@ class kFoldEvaluator(evaluator):
             for i in range(self.K_tests):
                 x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(folds, i)
 
-                model = MockKNN(k=5, seed=i, error_rate=0.3)
+                model = Knn_Algorithm.KNNClassifier(k=5, p=self.distance_strategy)  # MockKNN(k=5, seed=42, error_rate=0.3)
                 model.fit(x_train, y_train)
-                y_pred, y_score = model.predict(x_test, y_test=y_test)
+                y_score, y_pred = model.predict(x_test, pos_label=4)
 
                 y_test_all = np.append(y_test_all, y_test)
                 y_score_all = np.append(y_score_all, y_score)

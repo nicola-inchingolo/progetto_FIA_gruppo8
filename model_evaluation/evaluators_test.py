@@ -1,9 +1,6 @@
 import re
 import numpy as np
 import pandas as pd
-from holdout_evaluator import holdout_evaluator
-from k_fold_evaluator import kFoldEvaluator
-from leave_one_out_evaluator import LeaveOneOutEvaluator
 from EvaluatorFactory import EvaluatorFactory
 
 if __name__ == "__main__":
@@ -58,6 +55,27 @@ while True:
 
 print("Metrics selected:", metrics_array)
 
+knn_parameters = input(
+    "Select the distance_strategy to apply:\n"
+    "1) Manhattan Distance\n"
+    "2) Euclidean Distance\n"
+)
+
+distance_strategy_parameter : int
+while True:
+    if knn_parameters == "1":
+        distance_strategy_parameter = 1
+        break
+    elif knn_parameters == "2":
+        distance_strategy_parameter = 2
+        break
+    else:
+        print("Invalid choice, please select 1-2.")
+
+
+
+
+
 choice = input(
     "Select the validation to do:\n"
     "1) Holdout\n"
@@ -80,7 +98,7 @@ if choice == "1":
 
     print(f"Percentuale di training selezionata: {train_percentage}")
     # he = holdout_evaluator(df, metrics_array , train_percentage)
-    he = EvaluatorFactory.generate_evaluator("holdout", df, metrics_array, train_percentage=train_percentage)
+    he = EvaluatorFactory.generate_evaluator("holdout", df, metrics_array,distance_strategy_parameter, train_percentage=train_percentage)
     he.evaluate()
 elif choice == "2":
     print("Running K-Fold validation...")
@@ -92,13 +110,13 @@ elif choice == "2":
         print("Errore: inserisci un numero valido")
         exit(1)
     # kfe = kFoldEvaluator(df, metrics_array , K_split)
-    kfe = EvaluatorFactory.generate_evaluator("k-fold", df, metrics_array, K_tests=K_split)
+    kfe = EvaluatorFactory.generate_evaluator("k-fold", df, metrics_array, distance_strategy_parameter, K_tests=K_split)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")
     # chiama la funzione leave_one_out()
     # looe = LeaveOneOutEvaluator(df, metrics_array)
-    looe = EvaluatorFactory.generate_evaluator("loo", df, metrics_array)
+    looe = EvaluatorFactory.generate_evaluator("loo", df, metrics_array, distance_strategy_parameter)
     looe.evaluate()
 elif choice == "4":
     print("Exiting program...")

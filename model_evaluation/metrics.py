@@ -1,9 +1,8 @@
 import math
 import numpy as np
 
-
-#pos_label = evento di interesse
-#neg_label = evento non tipico
+# pos_label = evento di interesse
+# neg_label = evento non tipico
 
 """
 Computes a binary confusion matrix.
@@ -16,6 +15,8 @@ Computes a binary confusion matrix.
 
 @:return: 2x2 confusion matrix in the form [[TN, FP], [FN, TP]].
 """
+
+
 def confusion_matrix_binary(y_test, y_pred, pos_label=4, neg_label=2, normalize=True):
     TP = np.sum((y_test == pos_label) & (y_pred == pos_label))
     TN = np.sum((y_test == neg_label) & (y_pred == neg_label))
@@ -34,6 +35,8 @@ Computes the average of metrics across folds.
 
 @:return: Dictionary containing the mean value of each metric.
 """
+
+
 def calculate_mean_metrics(metrics_list: dict):
     sum_metrics = {}
     for fold in metrics_list.values():
@@ -50,13 +53,15 @@ def calculate_mean_metrics(metrics_list: dict):
 """
 Class used to compute evaluation metrics from a confusion matrix.
 """
-class metrics:
 
+
+class metrics:
     """
     Initializes the metrics calculator using a confusion matrix.
 
     @:param confusion_matrix: Confusion matrix in the form [[TN, FP], [FN, TP]].
     """
+
     def __init__(self, confusion_matrix: np.ndarray):
         self.TN = confusion_matrix[0][0]
         self.FP = confusion_matrix[0][1]
@@ -68,6 +73,7 @@ class metrics:
     
     @:return Accuracy value 
     """
+
     def calculate_accuracy(self):
         return (self.TP + self.TN) / (self.TP + self.TN + self.FP + self.FN)
 
@@ -76,6 +82,7 @@ class metrics:
 
     @:return error rate 
     """
+
     def calculate_error_rate(self):
         return (self.FP + self.FN) / (self.TP + self.TN + self.FP + self.FN)
 
@@ -84,6 +91,7 @@ class metrics:
 
     @:return sensitivity value 
     """
+
     def calculate_sensitivity(self):
         denom = self.TP + self.FN
         return self.TP / denom if denom != 0 else 0
@@ -93,6 +101,7 @@ class metrics:
 
     @:return specificity value 
     """
+
     def calculate_specificity(self):
         denom = self.TN + self.FP
         return self.TN / denom if denom != 0 else 0
@@ -102,6 +111,7 @@ class metrics:
 
     @:return g-mean value 
     """
+
     def calculate_geometric_mean(self):
         sensitivity = self.calculate_sensitivity()
         specificity = self.calculate_specificity()
@@ -112,6 +122,7 @@ class metrics:
 
     @:return precision value 
     """
+
     def calculate_precision(self):
         denom = self.TP + self.FP
         return self.TP / denom if denom != 0 else 0
@@ -121,6 +132,7 @@ class metrics:
 
     @:return f1 value 
     """
+
     def calculate_f1_score(self):
         precision = self.calculate_precision()
         sensitivity = self.calculate_sensitivity()
@@ -132,6 +144,7 @@ class metrics:
     
     @return: Dictionary containing all computed metrics.
     """
+
     def calculate_all_the_above(self):
         return {
             'Accuracy': self.calculate_accuracy(),

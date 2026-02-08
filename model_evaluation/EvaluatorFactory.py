@@ -8,6 +8,8 @@ from leave_one_out_evaluator import LeaveOneOutEvaluator
 Factory class used to instantiate evaluators
 according to the selected evaluation strategy.
 """
+
+
 class EvaluatorFactory:
     """
     Generates and returns an evaluator based on the specified type.
@@ -19,13 +21,14 @@ class EvaluatorFactory:
 
     @:raise ValueError: If the evaluator type is not supported.
     """
+
     @staticmethod
-    def generate_evaluator(ev_type: str, dataset: pd.DataFrame, metrics: np.array, **kwargs):
+    def generate_evaluator(ev_type: str, dataset: pd.DataFrame, metrics: np.array, p: int, **kwargs):
         if ev_type == "holdout":
-            return holdout_evaluator(dataset, metrics, kwargs.get("train_percentage"))
+            return holdout_evaluator(dataset, metrics, p, kwargs.get("train_percentage"))
         elif ev_type == "k-fold":
-            return kFoldEvaluator(dataset, metrics, kwargs.get("K_tests"))
+            return kFoldEvaluator(dataset, metrics, p, kwargs.get("K_tests"))
         elif ev_type == "loo":
-            return LeaveOneOutEvaluator(dataset, metrics)
+            return LeaveOneOutEvaluator(dataset, metrics, p)
         else:
             raise ValueError(f"Unknown evaluator type: {ev_type}")

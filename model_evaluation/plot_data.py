@@ -1,5 +1,4 @@
 import matplotlib
-
 matplotlib.use("TkAgg")
 import csv
 import os
@@ -34,7 +33,7 @@ def plot_ROC(fpr_array: np.array, tpr_array: np.array, filename: str = "roc_curv
 
     try:
         plt.figure()
-        plt.plot(fpr_array, tpr_array, marker='o', linestyle='-', color='violet')
+        plt.plot(fpr_array, tpr_array, marker='o', linestyle='-', color='Blue')
         plt.plot([0, 1], [0, 1], linestyle='--', color='gray')
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")

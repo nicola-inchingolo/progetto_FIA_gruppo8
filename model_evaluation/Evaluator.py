@@ -19,13 +19,14 @@ class evaluator(ABC):
 
     @:param datasetToEvaluate: Dataset used for model evaluation.
     @:param metrics: List or array of metric identifiers to compute.
+    @:param p: distance_coefficients that indicates the strategy
 
     @:raise TypeError: If datasetToEvaluate is not a pandas DataFrame.
     @:raise ValueError: If datasetToEvaluate is empty.
     @:raise TypeError: If metrics is not a list or numpy array.
     @:raise ValueError: If metrics is empty.
     """
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray):
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, p: int):
 
         if not isinstance(datasetToEvaluate, pd.DataFrame):
             raise TypeError("datasetToEvaluate must be a pandas DataFrame")
@@ -35,9 +36,12 @@ class evaluator(ABC):
             raise TypeError("metrics must be a list or numpy array")
         if len(metrics) == 0:
             raise ValueError("metrics list cannot be empty")
+        if not isinstance(p, int):
+            raise TypeError("parameter p must be an integer")
 
         self.dataset = datasetToEvaluate
         self.metrics = metrics
+        self.distance_strategy = p
 
     """
     Abstract method that must be implemented by subclasses.

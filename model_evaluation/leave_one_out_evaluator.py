@@ -1,13 +1,11 @@
-from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-from MockKNN import MockKNN
-from metrics import metrics
 from metrics import confusion_matrix_binary
 from metrics import calculate_mean_metrics
 import plot_data
 from Evaluator import evaluator
+from model_development import Knn_Algorithm
 
 
 """
@@ -25,8 +23,8 @@ class LeaveOneOutEvaluator(evaluator):
     @:param datasetToEvaluate: Dataset used for evaluation.
     @:param metrics: Array of metric identifiers to compute.
     """
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array):
-        super().__init__(datasetToEvaluate, metrics)
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, p:int):
+        super().__init__(datasetToEvaluate, metrics,p)
 
     """
     Splits the dataset into training and test sets according to the
@@ -85,9 +83,9 @@ class LeaveOneOutEvaluator(evaluator):
             for i in range(rows):
                 x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(size)
 
-                model = MockKNN(k=5, seed=42, error_rate=0.3)
+                model = Knn_Algorithm.KNNClassifier(k=5, p=self.distance_strategy)
                 model.fit(x_train, y_train)
-                y_pred, y_score = model.predict(x_test)
+                y_score, y_pred = model.predict(x_test, pos_label=4)
 
                 y_test_all = np.append(y_test_all, y_test)
                 y_score_all = np.append(y_score_all, y_score)
