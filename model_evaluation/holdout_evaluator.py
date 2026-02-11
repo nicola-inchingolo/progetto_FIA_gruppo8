@@ -56,7 +56,13 @@ class holdout_evaluator(evaluator):
         if not isinstance(self.dataset, pd.DataFrame):
             raise TypeError("Dataset must be a pandas DataFrame")
 
-        required_cols = {"Blood Pressure","Mitoses","Sample code number","Normal Nucleoli","Single Epithelial Cell Size","uniformity_cellsize_xx","clump_thickness_ty","Heart Rate","Marginal Adhesion","Bland Chromatin","classtype_v1","Uniformity of Cell Shape","bareNucleix_wrong"}
+        required_cols = {
+            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
+            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
+            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
+            "Bland Chromatin", "classtype_v1",
+            "Uniformity of Cell Shape", "bareNucleix_wrong"
+        }
 
         if not required_cols.issubset(self.dataset.columns):
             raise KeyError(f"Dataset must contain columns {required_cols}")
@@ -68,10 +74,18 @@ class holdout_evaluator(evaluator):
         dtr = shuffled_dataset.iloc[:split_index]
         dtst = shuffled_dataset.iloc[split_index:]
 
-        x_train = dtr.drop(columns=required_cols)
+        # feature e target SEPARATI
+        feature_cols = [
+            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
+            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
+            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
+            "Bland Chromatin", "Uniformity of Cell Shape", "bareNucleix_wrong"
+        ]
+
+        x_train = dtr[feature_cols]
         y_train = dtr["classtype_v1"]
 
-        x_test = dtst.drop(columns=required_cols)
+        x_test = dtst[feature_cols]
         y_test = dtst["classtype_v1"]
 
         return x_train, x_test, y_train, y_test
