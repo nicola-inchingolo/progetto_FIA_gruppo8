@@ -20,21 +20,20 @@ if __name__ == "__main__":
     # 1. ESECUZIONE PIPELINE (Caricamento e Pulizia Dati Reali)
     # Assicurati che il percorso del CSV sia corretto
     print("\n[1/2] Esecuzione Data Preprocessing...")
-    
 
-    clean_dataset = run_pipeline('data/dati_fia.csv')
-    
+    clean_dataset = run_pipeline()
+
     # Verifica che il dataset non sia vuoto
     if clean_dataset is None or clean_dataset.empty:
         print("Errore: La pipeline non ha restituito dati validi.")
         exit()
-        
+
     print(f"Dataset pronto: {len(clean_dataset)} campioni caricati.")
     print(f"Colonne disponibili: {list(clean_dataset.columns)}")
-    num_samples= len(clean_dataset)
+    num_samples = len(clean_dataset)
     # 2. CONFIGURAZIONE VALUTAZIONE (Interfaccia Utente)
     print("\n[2/2] Configurazione Valutazione Modello...")
-    
+
 VALID_METRICS = set(range(1, 8))  # {1,2,3,4,5,6,7}
 
 while True:
@@ -72,7 +71,7 @@ knn_parameters = input(
     "2) Euclidean Distance\n"
 )
 
-distance_strategy_parameter : int
+distance_strategy_parameter: int
 while True:
     if knn_parameters == "1":
         distance_strategy_parameter = 1
@@ -85,15 +84,19 @@ while True:
 
 k_neighbours = int(input("\nSelect the k_neighbours parameter: "))
 
+while True:
+    choice = input(
+        "Select the validation to do:\n"
+        "1) Holdout\n"
+        "2) K-fold\n"
+        "3) Leave-one-out\n"
+        "4) Exit\n"
+    )
 
-
-choice = input(
-    "Select the validation to do:\n"
-    "1) Holdout\n"
-    "2) K-fold\n"
-    "3) Leave-one-out\n"
-    "4) Exit\n"
-)
+    if choice in ["1", "2", "3", "4"]:
+        break
+    else:
+        print("Scelta non valida, inserisci un numero tra 1 e 4.")
 
 if choice == "1":
     print("Running Holdout validation...")
@@ -109,7 +112,8 @@ if choice == "1":
 
     print(f"Percentuale di training selezionata: {train_percentage}")
     # he = holdout_evaluator(df, metrics_array , train_percentage)
-    he = EvaluatorFactory.generate_evaluator("holdout", clean_dataset, metrics_array, distance_strategy_parameter, k_neighbours, train_percentage=train_percentage)
+    he = EvaluatorFactory.generate_evaluator("holdout", clean_dataset, metrics_array, distance_strategy_parameter,
+                                             k_neighbours, train_percentage=train_percentage)
     he.evaluate()
 elif choice == "2":
     print("Running K-Fold validation...")
@@ -121,13 +125,15 @@ elif choice == "2":
         print("Errore: inserisci un numero valido")
         exit(1)
     # kfe = kFoldEvaluator(df, metrics_array , K_split)
-    kfe = EvaluatorFactory.generate_evaluator("k-fold", clean_dataset, metrics_array, distance_strategy_parameter, k_neighbours, K_tests=K_split)
+    kfe = EvaluatorFactory.generate_evaluator("k-fold", clean_dataset, metrics_array, distance_strategy_parameter,
+                                              k_neighbours, K_tests=K_split)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")
     # chiama la funzione leave_one_out()
     # looe = LeaveOneOutEvaluator(df, metrics_array)
-    looe = EvaluatorFactory.generate_evaluator("loo", clean_dataset, metrics_array, distance_strategy_parameter, k_neighbours)
+    looe = EvaluatorFactory.generate_evaluator("loo", clean_dataset, metrics_array, distance_strategy_parameter,
+                                               k_neighbours)
     looe.evaluate()
 elif choice == "4":
     print("Exiting program...")

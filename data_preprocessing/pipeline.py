@@ -25,7 +25,9 @@ import pandas as pd
             ready for model development.
 """
 
-def main(file_path: str = 'data/dati_fia.csv') -> pd.DataFrame:
+def main() -> pd.DataFrame:
+
+    file_path = input('Enter the relative or absolute path of the dataset to be processed and studied:')
         
     print("\n----- STARTING PIPELINE -----")
 
