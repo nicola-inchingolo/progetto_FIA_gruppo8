@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import random
 from collections import Counter
 from abc import ABC, abstractmethod
-from distance_strategy import DistanceFactory
+from  model_development.distance_strategy import DistanceFactory
 
 
 class KNNClassifier:

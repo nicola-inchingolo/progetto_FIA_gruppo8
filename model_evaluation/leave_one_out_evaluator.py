@@ -23,8 +23,8 @@ class LeaveOneOutEvaluator(evaluator):
     @:param datasetToEvaluate: Dataset used for evaluation.
     @:param metrics: Array of metric identifiers to compute.
     """
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, p:int):
-        super().__init__(datasetToEvaluate, metrics,p)
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, p: int, k: int):
+        super().__init__(datasetToEvaluate, metrics, p, k)
 
     """
     Splits the dataset into training and test sets according to the
@@ -83,7 +83,7 @@ class LeaveOneOutEvaluator(evaluator):
             for i in range(rows):
                 x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(size)
 
-                model = Knn_Algorithm.KNNClassifier(k=5, p=self.distance_strategy)
+                model = Knn_Algorithm.KNNClassifier(k=self.k_neighbours, p=self.distance_strategy)
                 model.fit(x_train, y_train)
                 y_score, y_pred = model.predict(x_test, pos_label=4)
 

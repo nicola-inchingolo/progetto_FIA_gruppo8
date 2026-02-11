@@ -25,10 +25,10 @@ class holdout_evaluator(evaluator):
     @:raise ValueError: If train_percentage is not between 0 and 1.
     """
 
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, train_percentage: float, p: int,
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, p: int, k: int, train_percentage: float,
                  seed: int = 42):
         # call the constructor of the superclass evaluator
-        super().__init__(datasetToEvaluate, metrics, p)
+        super().__init__(datasetToEvaluate, metrics, p, k)
 
         # these exceptions verify if the train_percentage will be correctly istantiated
         if not isinstance(train_percentage, float):
@@ -88,7 +88,7 @@ class holdout_evaluator(evaluator):
         try:
             x_train, x_test, y_train, y_test = self.split_dataset_with_strategy()
             # calculate prediction
-            model = Knn_Algorithm.KNNClassifier(k=5, p=self.distance_strategy)
+            model = Knn_Algorithm.KNNClassifier(k=self.k_neighbours, p=self.distance_strategy)
             model.fit(x_train, y_train)
             y_score, y_pred = model.predict(x_test, pos_label=4)
 

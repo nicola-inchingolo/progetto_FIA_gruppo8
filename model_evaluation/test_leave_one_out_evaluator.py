@@ -18,13 +18,13 @@ class TestLeaveOneOutEvaluator(unittest.TestCase):
 
     def test_init_valid(self):
         """Test that the evaluator initializes correctly."""
-        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2)
+        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2,2)
         self.assertEqual(ev.dataset.shape[0], 4)
         self.assertTrue(np.array_equal(ev.metrics, self.metrics))
 
     def test_split_dataset_basic(self):
         """Test leave-one-out split for first sample."""
-        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2)
+        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2,2)
         x_train, x_test, y_train, y_test = ev.split_dataset_with_strategy(0)
 
         self.assertEqual(len(x_train), 3)
@@ -37,7 +37,7 @@ class TestLeaveOneOutEvaluator(unittest.TestCase):
 
     def test_split_dataset_out_of_range(self):
         """Test that index out of range raises ValueError."""
-        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2)
+        ev = LeaveOneOutEvaluator(self.df, self.metrics, 2,2)
         with self.assertRaises(ValueError):
             ev.split_dataset_with_strategy(-1)
         with self.assertRaises(ValueError):
@@ -46,14 +46,14 @@ class TestLeaveOneOutEvaluator(unittest.TestCase):
     def test_split_dataset_missing_columns(self):
         """Test that missing required columns raises KeyError."""
         df_missing = self.df.drop(columns=["Class"])
-        ev = LeaveOneOutEvaluator(df_missing, self.metrics, 2)
+        ev = LeaveOneOutEvaluator(df_missing, self.metrics, 2,2)
         with self.assertRaises(KeyError):
             ev.split_dataset_with_strategy(0)
 
     def test_leave_one_out_evaluation(self):
         features = np.array([6])
 
-        evaluation = LeaveOneOutEvaluator(self.df, features, 2)
+        evaluation = LeaveOneOutEvaluator(self.df, features, 2,2)
 
         evaluation.evaluate()
 

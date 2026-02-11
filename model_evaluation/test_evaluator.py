@@ -24,14 +24,14 @@ class TestEvaluator(unittest.TestCase):
         self.y_pred = pd.Series([4, 2, 2, 2])
         self.y_score = pd.Series([0.9, 0.7, 0.4, 0.1])
 
-        self.ev = MockEvaluator(self.df, self.valid_metrics, 2)
+        self.ev = MockEvaluator(self.df, self.valid_metrics, 2, 3)
 
     """
     Test that the Evaluator is correctly instantiated
     when valid parameters are provided.
     """
     def test_init_valid(self):
-        ev = MockEvaluator(self.df, self.valid_metrics, 2)
+        ev = MockEvaluator(self.df, self.valid_metrics, 2, 3)
         self.assertIsNotNone(ev)
 
     """
@@ -40,14 +40,14 @@ class TestEvaluator(unittest.TestCase):
     """
     def test_init_dataset_not_dataframe(self):
         with self.assertRaises(TypeError):
-            MockEvaluator([1, 2, 3], self.valid_metrics, 2)
+            MockEvaluator([1, 2, 3], self.valid_metrics, 2, 3)
 
     """
     Test that a ValueError is raised if the dataset is empty.
     """
     def test_init_empty_dataframe(self):
         with self.assertRaises(ValueError):
-            MockEvaluator(pd.DataFrame(), self.valid_metrics,2)
+            MockEvaluator(pd.DataFrame(), self.valid_metrics,2, 3)
 
     """
     Test that a TypeError is raised if metrics are not
@@ -55,14 +55,14 @@ class TestEvaluator(unittest.TestCase):
     """
     def test_init_metrics_wrong_type(self):
         with self.assertRaises(TypeError):
-            MockEvaluator(self.df, "metrics",2)
+            MockEvaluator(self.df, "metrics",2, 3)
 
     """
     Test that a ValueError is raised if the metrics array is empty.
     """
     def test_init_empty_metrics(self):
         with self.assertRaises(ValueError):
-            MockEvaluator(self.df, [], 2)
+            MockEvaluator(self.df, [], 2, 3)
 
     """
     Test correct computation of metrics and confusion matrix
@@ -101,7 +101,7 @@ class TestEvaluator(unittest.TestCase):
     metric index is provided.
     """
     def test_calculate_metrics_invalid_metric_index(self):
-        ev = MockEvaluator(self.df, np.array([9]),2)
+        ev = MockEvaluator(self.df, np.array([9]),2, 3)
         with self.assertRaises(ValueError):
             ev.calculate_metrics(self.y_test, self.y_pred)
 

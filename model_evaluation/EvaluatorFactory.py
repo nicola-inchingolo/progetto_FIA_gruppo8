@@ -23,12 +23,12 @@ class EvaluatorFactory:
     """
 
     @staticmethod
-    def generate_evaluator(ev_type: str, dataset: pd.DataFrame, metrics: np.array, p: int, **kwargs):
+    def generate_evaluator(ev_type: str, dataset: pd.DataFrame, metrics: np.array, p: int, k: int, **kwargs):
         if ev_type == "holdout":
-            return holdout_evaluator(dataset, metrics, p, kwargs.get("train_percentage"))
+            return holdout_evaluator(dataset, metrics, p, k, kwargs.get("train_percentage"))
         elif ev_type == "k-fold":
-            return kFoldEvaluator(dataset, metrics, p, kwargs.get("K_tests"))
+            return kFoldEvaluator(dataset, metrics, p, k, kwargs.get("K_tests"))
         elif ev_type == "loo":
-            return LeaveOneOutEvaluator(dataset, metrics, p)
+            return LeaveOneOutEvaluator(dataset, metrics, p, k)
         else:
             raise ValueError(f"Unknown evaluator type: {ev_type}")

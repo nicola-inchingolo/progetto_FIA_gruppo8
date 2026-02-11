@@ -72,7 +72,7 @@ while True:
     else:
         print("Invalid choice, please select 1-2.")
 
-
+k_neighbours = int(input("\nSelect the k_neighbours parameter: "))
 
 
 
@@ -98,7 +98,7 @@ if choice == "1":
 
     print(f"Percentuale di training selezionata: {train_percentage}")
     # he = holdout_evaluator(df, metrics_array , train_percentage)
-    he = EvaluatorFactory.generate_evaluator("holdout", df, metrics_array,distance_strategy_parameter, train_percentage=train_percentage)
+    he = EvaluatorFactory.generate_evaluator("holdout", df, metrics_array, distance_strategy_parameter, k_neighbours, train_percentage=train_percentage)
     he.evaluate()
 elif choice == "2":
     print("Running K-Fold validation...")
@@ -110,13 +110,13 @@ elif choice == "2":
         print("Errore: inserisci un numero valido")
         exit(1)
     # kfe = kFoldEvaluator(df, metrics_array , K_split)
-    kfe = EvaluatorFactory.generate_evaluator("k-fold", df, metrics_array, distance_strategy_parameter, K_tests=K_split)
+    kfe = EvaluatorFactory.generate_evaluator("k-fold", df, metrics_array, distance_strategy_parameter, k_neighbours, K_tests=K_split)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")
     # chiama la funzione leave_one_out()
     # looe = LeaveOneOutEvaluator(df, metrics_array)
-    looe = EvaluatorFactory.generate_evaluator("loo", df, metrics_array, distance_strategy_parameter)
+    looe = EvaluatorFactory.generate_evaluator("loo", df, metrics_array, distance_strategy_parameter, k_neighbours)
     looe.evaluate()
 elif choice == "4":
     print("Exiting program...")

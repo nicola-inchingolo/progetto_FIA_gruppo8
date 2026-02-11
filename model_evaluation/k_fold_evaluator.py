@@ -28,8 +28,8 @@ class kFoldEvaluator(evaluator):
     @:raise ValueError: If K_tests is not between 2 and the number of samples.
     """
 
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, K_tests: int,p:int,  seed: int = 42):
-        super().__init__(datasetToEvaluate, metrics,p)
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, p: int, k: int, K_tests: int,  seed: int = 42):
+        super().__init__(datasetToEvaluate, metrics, p, k)
 
         if not isinstance(K_tests, int):
             raise TypeError("K_tests must be an integer")
@@ -97,7 +97,7 @@ class kFoldEvaluator(evaluator):
             for i in range(self.K_tests):
                 x_train, x_test, y_train, y_test = self.split_dataset_with_strategy(folds, i)
 
-                model = Knn_Algorithm.KNNClassifier(k=5, p=self.distance_strategy)  # MockKNN(k=5, seed=42, error_rate=0.3)
+                model = Knn_Algorithm.KNNClassifier(k=self.k_neighbours, p=self.distance_strategy)  # MockKNN(k=5, seed=42, error_rate=0.3)
                 model.fit(x_train, y_train)
                 y_score, y_pred = model.predict(x_test, pos_label=4)
 

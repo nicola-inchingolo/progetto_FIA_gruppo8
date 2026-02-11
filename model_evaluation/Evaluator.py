@@ -26,7 +26,7 @@ class evaluator(ABC):
     @:raise TypeError: If metrics is not a list or numpy array.
     @:raise ValueError: If metrics is empty.
     """
-    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, p: int):
+    def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.ndarray, p: int, k: int):
 
         if not isinstance(datasetToEvaluate, pd.DataFrame):
             raise TypeError("datasetToEvaluate must be a pandas DataFrame")
@@ -42,6 +42,7 @@ class evaluator(ABC):
         self.dataset = datasetToEvaluate
         self.metrics = metrics
         self.distance_strategy = p
+        self.k_neighbours = k
 
     """
     Abstract method that must be implemented by subclasses.
