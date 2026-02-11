@@ -26,6 +26,10 @@ def run_handling_missing_value(
         columns_with_nulls: pd.Index 
         ) -> ImputationOutputs :
     
+    initial_shape = df.shape
+    df = df.dropna(subset=["classtype_v1"]).copy()
+    print(f"Removed {initial_shape[0] - df.shape[0]} rows with null target values.")    
+    
     random_col = random.choice(columns_with_nulls.index.tolist())
     
     plt.figure(figsize=(10, 6))

@@ -20,7 +20,7 @@ import os
 class ReadFileOutputs(NamedTuple):
     df_output: pd.DataFrame
 
-def run_load_and_convert_to_csv(path):
+def run_load_and_convert_to_csv(path) -> ReadFileOutputs :
     # Split the file path into the base name and the extension
     file_path = path
     base_name, extension = os.path.splitext(file_path)
