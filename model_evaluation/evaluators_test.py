@@ -7,19 +7,20 @@ if __name__ == "__main__":
     num_samples = 300  # numero di campioni
 
     df = pd.DataFrame({
-        "ID": range(1, num_samples + 1),
-        "Sample code number": range(1001, 1001 + num_samples),
-        "Clump Thickness": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Uniformity of Cell Size": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Uniformity of Cell Shape": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Marginal Adhesion": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Single Epithelial Cell Size": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Bare Nuclei": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Bland Chromatin": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Normal Nucleoli": np.round(np.random.uniform(1, 10, num_samples), 1),
-        "Mitoses": np.round(np.random.uniform(1, 5, num_samples), 1),
+         "Blood Pressure": np.round(np.random.uniform(80, 180, num_samples), 1),
+    "Mitoses": np.round(np.random.uniform(1, 5, num_samples), 1),
+    "Sample code number": range(1001, 1001 + num_samples),
+    "Normal Nucleoli": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "Single Epithelial Cell Size": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "uniformity_cellsize_xx": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "clump_thickness_ty": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "Heart Rate": np.round(np.random.uniform(50, 120, num_samples), 1),
+    "Marginal Adhesion": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "Bland Chromatin": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "Uniformity of Cell Shape": np.round(np.random.uniform(1, 10, num_samples), 1),
+    "bareNucleix_wrong": np.round(np.random.uniform(1, 10, num_samples), 1),
         # Alternanza tra benigno (2) e maligno (4) per bilanciare le classi
-        "Class": [2, 4] * (num_samples // 2)
+        "classtype_v1": [2, 4] * (num_samples // 2)
     })
 
     print(df)
