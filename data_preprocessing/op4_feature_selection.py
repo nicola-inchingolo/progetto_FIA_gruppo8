@@ -63,10 +63,18 @@ def run_feature_selection(
         np.triu(np.ones(correlation_matrix_abs.shape), k=1).astype(bool)
     )
 
+    # Identify the target column (containing "class" in its name) to protect it
+    target_col = None
+    for col in df.columns:
+        if 'class' in col.lower():
+            target_col = col
+            break
+    
     # Identify columns to drop: creates a list of columns with correlation > 0.8
+    # but NEVER drop the target column
     columns_to_drop_corr = [
         column for column in upper_triangle.columns 
-        if any(upper_triangle[column] > 0.8)
+        if any(upper_triangle[column] > 0.8) and column != target_col
     ]
 
     if not columns_to_drop_corr:

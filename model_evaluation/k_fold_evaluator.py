@@ -53,20 +53,25 @@ class kFoldEvaluator(evaluator):
 
     def split_dataset_with_strategy(self, folds: np.array, i: int):
 
-        required_cols = {"Blood Pressure","Mitoses","Sample code number","Normal Nucleoli","Single Epithelial Cell Size","uniformity_cellsize_xx","clump_thickness_ty","Heart Rate","Marginal Adhesion","Bland Chromatin","classtype_v1","Uniformity of Cell Shape","bareNucleix_wrong"}
-        if not required_cols.issubset(self.dataset.columns):
-            raise KeyError(f"Dataset must contain columns {required_cols}")
+        target_col = "classtype_v1"
+
+        if target_col not in self.dataset.columns:
+            raise KeyError(f"Dataset must contain column {target_col}")
 
         test_section = folds[i]
-        train_section = pd.concat(folds[j] for j in range(self.K_tests) if j != i)
+        train_section = pd.concat(
+            folds[j] for j in range(self.K_tests) if j != i
+        )
 
         if test_section.empty or train_section.empty:
             raise ValueError("Train or test fold is empty")
 
-        x_train = train_section.drop(columns=required_cols)
-        y_train = train_section["classtype_v1"]
-        x_test = test_section.drop(columns=required_cols)
-        y_test = test_section["classtype_v1"]
+        # X = tutto tranne la label
+        x_train = train_section.drop(columns=[target_col])
+        y_train = train_section[target_col]
+
+        x_test = test_section.drop(columns=[target_col])
+        y_test = test_section[target_col]
 
         return x_train, x_test, y_train, y_test
 
