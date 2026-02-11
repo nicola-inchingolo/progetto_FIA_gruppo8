@@ -43,7 +43,7 @@ class LeaveOneOutEvaluator(evaluator):
         if size < 0 or size >= len(self.dataset):
             raise ValueError("size index out of range")
 
-        required_cols = {"ID", "Sample code number", "Class"}
+        required_cols = {"Blood Pressure","Mitoses","Sample code number","Normal Nucleoli","Single Epithelial Cell Size","uniformity_cellsize_xx","clump_thickness_ty","Heart Rate","Marginal Adhesion","Bland Chromatin","classtype_v1","Uniformity of Cell Shape","bareNucleix_wrong"}
         if not required_cols.issubset(self.dataset.columns):
             raise KeyError(f"Dataset must contain columns {required_cols}")
 
@@ -53,10 +53,10 @@ class LeaveOneOutEvaluator(evaluator):
         print(f"train set: \n {train_section} \n")
 
         x_train = train_section.drop(columns=required_cols)
-        y_train = train_section["Class"]
+        y_train = train_section["classtype_v1"]
 
         x_test = test_section.drop(columns=required_cols)
-        y_test = test_section["Class"]
+        y_test = test_section["classtype_v1"]
 
         return x_train, x_test, y_train, y_test
 
