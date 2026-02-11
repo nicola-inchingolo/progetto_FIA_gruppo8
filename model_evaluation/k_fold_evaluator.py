@@ -62,6 +62,9 @@ class kFoldEvaluator(evaluator):
         train_section = pd.concat(
             folds[j] for j in range(self.K_tests) if j != i
         )
+        train_section = pd.concat(
+            folds[j] for j in range(self.K_tests) if j != i
+        )
 
         if test_section.empty or train_section.empty:
             raise ValueError("Train or test fold is empty")
