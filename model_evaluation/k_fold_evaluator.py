@@ -51,25 +51,26 @@ class kFoldEvaluator(evaluator):
     @:raise ValueError: If the training or test fold is empty.
     """
 
-    def split_dataset_with_strategy(self, folds: np.array, i: int):
-
+    def split_dataset_with_strategy(self, folds, i: int):
         target_col = "classtype_v1"
 
         if target_col not in self.dataset.columns:
             raise KeyError(f"Dataset must contain column {target_col}")
 
+
         test_section = folds[i]
-        #train_section = pd.concat(
-         #   folds[j] for j in range(self.K_tests) if j != i
-        #)
-        train_section = pd.concat(
-            [pd.DataFrame(f) if not isinstance(f, pd.DataFrame) else f for f in folds]
-        )
+        if isinstance(test_section, np.ndarray):
+            test_section = pd.DataFrame(test_section, columns=self.dataset.columns)
+
+    
+        train_section = pd.concat([
+            pd.DataFrame(folds[j], columns=self.dataset.columns) if isinstance(folds[j], np.ndarray) else folds[j]
+            for j in range(self.K_tests) if j != i])
 
         if test_section.empty or train_section.empty:
             raise ValueError("Train or test fold is empty")
 
-        # X = tutto tranne la label
+  
         x_train = train_section.drop(columns=[target_col])
         y_train = train_section[target_col]
 

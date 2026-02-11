@@ -11,6 +11,7 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y \
     && pip install --no-cache-dir -r requirements.txt
 
+
 # Copia tutto il resto del codice sorgente nel container
 COPY . .
 
