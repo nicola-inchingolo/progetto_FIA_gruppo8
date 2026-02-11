@@ -43,16 +43,10 @@ class LeaveOneOutEvaluator(evaluator):
         if size < 0 or size >= len(self.dataset):
             raise ValueError("size index out of range")
 
-        required_cols = {
-            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
-            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
-            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
-            "Bland Chromatin", "classtype_v1",
-            "Uniformity of Cell Shape", "bareNucleix_wrong"
-        }
+        target_col = "classtype_v1"
 
-        if not required_cols.issubset(self.dataset.columns):
-            raise KeyError(f"Dataset must contain columns {required_cols}")
+        if target_col not in self.dataset.columns:
+            raise KeyError(f"Dataset must contain column {target_col}")
 
         test_section = self.dataset.iloc[size:size + 1]
         train_section = pd.concat([
@@ -63,19 +57,12 @@ class LeaveOneOutEvaluator(evaluator):
         print(f"test set:\n{test_section}\n")
         print(f"train set:\n{train_section}\n")
 
-        # feature e target separati
-        feature_cols = [
-            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
-            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
-            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
-            "Bland Chromatin", "Uniformity of Cell Shape", "bareNucleix_wrong"
-        ]
+        # X = tutto tranne la label
+        x_train = train_section.drop(columns=[target_col])
+        y_train = train_section[target_col]
 
-        x_train = train_section[feature_cols]
-        y_train = train_section["classtype_v1"]
-
-        x_test = test_section[feature_cols]
-        y_test = test_section["classtype_v1"]
+        x_test = test_section.drop(columns=[target_col])
+        y_test = test_section[target_col]
 
         return x_train, x_test, y_train, y_test
 

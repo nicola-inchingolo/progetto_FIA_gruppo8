@@ -66,6 +66,7 @@ def run_feature_selection(
     target_column = ['classtype_v1']
 
     # Identify columns to drop: creates a list of columns with correlation > 0.8
+    # but NEVER drop the target column
     columns_to_drop_corr = [
         column for column in upper_triangle.columns 
         if any(upper_triangle[column] > 0.8) and column not in target_column

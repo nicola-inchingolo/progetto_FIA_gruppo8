@@ -52,41 +52,29 @@ class holdout_evaluator(evaluator):
 
     def split_dataset_with_strategy(self):
 
-        # these exceptions verify if the dataset is instantiated
         if not isinstance(self.dataset, pd.DataFrame):
             raise TypeError("Dataset must be a pandas DataFrame")
 
-        required_cols = {
-            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
-            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
-            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
-            "Bland Chromatin", "classtype_v1",
-            "Uniformity of Cell Shape", "bareNucleix_wrong"
-        }
+        target_col = "classtype_v1"
 
-        if not required_cols.issubset(self.dataset.columns):
-            raise KeyError(f"Dataset must contain columns {required_cols}")
+        if target_col not in self.dataset.columns:
+            raise KeyError(f"Dataset must contain column {target_col}")
 
-        # shuffle del dataset
-        shuffled_dataset = self.dataset.sample(frac=1, random_state=self.seed).reset_index(drop=True)
+    # shuffle del dataset
+        shuffled_dataset = self.dataset.sample(
+            frac=1, random_state=self.seed
+            ).reset_index(drop=True)
 
         split_index = int(len(shuffled_dataset) * self.train_percentage)
         dtr = shuffled_dataset.iloc[:split_index]
         dtst = shuffled_dataset.iloc[split_index:]
 
-        # feature e target SEPARATI
-        feature_cols = [
-            "Blood Pressure", "Mitoses", "Sample code number", "Normal Nucleoli",
-            "Single Epithelial Cell Size", "uniformity_cellsize_xx",
-            "clump_thickness_ty", "Heart Rate", "Marginal Adhesion",
-            "Bland Chromatin", "Uniformity of Cell Shape", "bareNucleix_wrong"
-        ]
+    # X = tutto tranne la label
+        x_train = dtr.drop(columns=[target_col])
+        y_train = dtr[target_col]
 
-        x_train = dtr[feature_cols]
-        y_train = dtr["classtype_v1"]
-
-        x_test = dtst[feature_cols]
-        y_test = dtst["classtype_v1"]
+        x_test = dtst.drop(columns=[target_col])
+        y_test = dtst[target_col]
 
         return x_train, x_test, y_train, y_test
 
