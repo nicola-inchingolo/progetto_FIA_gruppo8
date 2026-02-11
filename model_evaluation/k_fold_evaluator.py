@@ -59,11 +59,11 @@ class kFoldEvaluator(evaluator):
             raise KeyError(f"Dataset must contain column {target_col}")
 
         test_section = folds[i]
+        #train_section = pd.concat(
+         #   folds[j] for j in range(self.K_tests) if j != i
+        #)
         train_section = pd.concat(
-            folds[j] for j in range(self.K_tests) if j != i
-        )
-        train_section = pd.concat(
-            folds[j] for j in range(self.K_tests) if j != i
+            [pd.DataFrame(f) if not isinstance(f, pd.DataFrame) else f for f in folds]
         )
 
         if test_section.empty or train_section.empty:
