@@ -62,23 +62,23 @@ Durante l'esecuzione verranno richieste alcune scelte:
 
 Il sistema offre una suite completa per l'analisi e la classificazione, strutturata in quattro macro-aree:
 
-- 1. Gestione e Preprocessing dei Dati
+1. Gestione e Preprocessing dei Dati
     - **Pipeline Automatizzata**: Caricamento, pulizia e normalizzazione del dataset clinico.
     - **Data Imputation**: Gestione avanzata dei valori mancanti e rimozione degli outlier per garantire la qualità del training set.
     - **Suddivisione Dinamica**: Split automatico dei dati in base alla strategia di validazione scelta.
 
-- 2. Configurazione del Modello (KNN)
+2. Configurazione del Modello (KNN)
     - **Algoritmo K-Nearest Neighbors**: Implementazione flessibile con parametro **k** (vicini) personalizzabile.
     - **Strategie di Distanza**: Supporto duale per il calcolo della similarità:
         - **Distanza Euclidea**
         - **Distanza di Manhattan**
 
-- 3. Strategie di Validazione:
+3. Strategie di Validazione:
     - **Holdout**: Divisione classica Training/Test con percentuale personalizzabile (es. 70/30).
     - **K-Fold Cross Validation**: Validazione incrociata a $K$ segmenti per ridurre la varianza.
     - **Leave-One-Out**: Validazione esaustiva, ideale per dataset di dimensioni contenute.
 
-- 4. Metriche e Visualizzazione delle Performance:
+4. Metriche e Visualizzazione delle Performance:
     - **Indicatori Numerici**: Calcolo di *Accuracy, Error Rate, Sensitivity, Specificity, Geometric Mean* e *AUC (Area Under Curve)*.
     - **Grafici Generati**:
         - **Confusion Matrix**: Per visualizzare falsi positivi/negativi.
@@ -125,11 +125,7 @@ Il progetto è containerizzato per garantire la massima riproducibilità senza p
 ```bash
    docker run -it gruppo8-tumor-classifier
 ```
-    *Nota: L'opzione `-it` è fondamentale per interagire con il menu del programma.*
-
-## Testing
-
-Il progetto include una suite di unit test per verificare il corretto funzionamento dei moduli di preprocessing e dell'algoritmo KNN.
+**Nota: L'opzione `-it` è fondamentale per interagire con il menu del programma.**
 
 ## Contributi
 Progetto sviluppato dal Gruppo 8:
