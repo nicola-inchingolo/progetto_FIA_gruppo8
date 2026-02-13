@@ -13,7 +13,6 @@ L'algoritmo principale utilizzato è **KNN (K-Nearest Neighbors)**, e il progett
 - [Funzionalità](#funzionalità)
 - [Architettura del progetto](#architettura-del-progetto)
 - [Utilizzo con Docker](#Utilizzo-con-Docker)
-- [Testing](#Testing)
 - [Contributi](#contributi)
 - [Licenza](#licenza)
 
