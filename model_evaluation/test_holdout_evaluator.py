@@ -15,7 +15,7 @@ class TestHoldoutEvaluator(unittest.TestCase):
             "Sample code number": [10, 11, 12, 13],
             "Feature1": [1.0, 2.0, 3.0, 4.0],
             "Feature2": [0.1, 0.2, 0.3, 0.4],
-            "Class": [2, 4, 2, 4]
+            "classtype_v1": [2, 4, 2, 4]
         })
         self.metrics = np.array([1])
 
@@ -50,7 +50,7 @@ class TestHoldoutEvaluator(unittest.TestCase):
 
     """Test that missing required columns raises KeyError."""
     def test_split_dataset_missing_columns(self):
-        df = self.df.drop(columns=["Class"])
+        df = self.df.drop(columns=["classtype_v1"])
         ev = holdout_evaluator(df, np.array([1]), 2, 2, 0.5)
         with self.assertRaises(KeyError):
             ev.split_dataset_with_strategy()
@@ -64,9 +64,14 @@ class TestHoldoutEvaluator(unittest.TestCase):
         evaluation = holdout_evaluator(self.df,features,  2, 3, train_percentage)
 
         x_train, x_test, y_train, y_test = evaluation.split_dataset_with_strategy()
-        self.assertEqual(len(x_train), int(len(
-            features) * train_percentage))
-        self.assertEqual(len(x_test), len(features) - len(x_train))
+        self.assertEqual(
+            len(x_train),
+            int(len(self.df) * train_percentage)
+        )
+        self.assertEqual(
+            len(x_test),
+            len(self.df) - len(x_train)
+        )
         self.assertEqual(len(y_train), len(x_train))
         self.assertEqual(len(y_test), len(x_test))
 

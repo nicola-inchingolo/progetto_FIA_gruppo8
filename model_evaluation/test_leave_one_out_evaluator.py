@@ -12,7 +12,7 @@ class TestLeaveOneOutEvaluator(unittest.TestCase):
             "Sample code number": [10, 11, 12, 13],
             "Feature1": [1.0, 2.0, 3.0, 4.0],
             "Feature2": [0.1, 0.2, 0.3, 0.4],
-            "Class": [2, 4, 2, 4]
+            "classtype_v1": [2, 4, 2, 4]
         })
         self.metrics = np.array([1])  # only accuracy for simplicity
 
@@ -45,7 +45,7 @@ class TestLeaveOneOutEvaluator(unittest.TestCase):
 
     def test_split_dataset_missing_columns(self):
         """Test that missing required columns raises KeyError."""
-        df_missing = self.df.drop(columns=["Class"])
+        df_missing = self.df.drop(columns=["classtype_v1"])
         ev = LeaveOneOutEvaluator(df_missing, self.metrics, 2,2)
         with self.assertRaises(KeyError):
             ev.split_dataset_with_strategy(0)

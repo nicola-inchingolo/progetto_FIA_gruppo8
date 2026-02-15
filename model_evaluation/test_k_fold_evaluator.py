@@ -15,7 +15,7 @@ class TestKFoldEvaluator(unittest.TestCase):
             "Sample code number": [10, 11, 12, 13, 14],
             "Feature1": [1.0, 2.0, 3.0, 4.0, 5.0],
             "Feature2": [0.1, 0.2, 0.3, 0.4, 0.5],
-            "Class": [2, 4, 2, 4, 2]
+            "classtype_v1": [2, 4, 2, 4, 2]
         })
 
     """Test that kFoldEvaluator initializes correctly with valid parameters."""
@@ -42,17 +42,23 @@ class TestKFoldEvaluator(unittest.TestCase):
     """Test that split_dataset_with_strategy returns correct shapes."""
 
     def test_split_dataset_valid(self):
-        ev = kFoldEvaluator(self.df, np.array([1]), 3, 2, 3)
+        ev = kFoldEvaluator(self.df, np.array([1, 2]), 3, 2, 3)
         folds = np.array_split(ev.dataset, ev.K_tests)
+
         x_train, x_test, y_train, y_test = ev.split_dataset_with_strategy(folds, 0)
-        self.assertEqual(x_train.shape[1], 2)  # two features
-        self.assertEqual(x_test.shape[1], 2)
-        self.assertEqual(list(y_train.unique()), [2, 4])  # Classes included
+
+        #excluding the target ones
+        expected_num_features = self.df.shape[1] - 1
+
+        self.assertEqual(x_train.shape[1], expected_num_features)
+        self.assertEqual(x_test.shape[1], expected_num_features)
+
+        self.assertEqual(sorted(y_train.unique().tolist()), [2, 4])
 
     """Test that missing required columns raises KeyError."""
 
     def test_split_dataset_missing_columns(self):
-        df = self.df.drop(columns=["Class"])
+        df = self.df.drop(columns=["classtype_v1"])
         ev = kFoldEvaluator(df, np.array([1]), 2, 2, 2)
         folds = np.array_split(ev.dataset, ev.K_tests)
         with self.assertRaises(KeyError):
