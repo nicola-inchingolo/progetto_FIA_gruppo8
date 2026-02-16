@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-import plot_data
-from metrics import confusion_matrix_binary
-from metrics import calculate_mean_metrics
-from Evaluator import evaluator
+from model_evaluation import plot_data
+from model_evaluation.metrics import confusion_matrix_binary
+from model_evaluation.metrics import calculate_mean_metrics
+from model_evaluation.Evaluator import evaluator
 from model_development import Knn_Algorithm
 
 """
