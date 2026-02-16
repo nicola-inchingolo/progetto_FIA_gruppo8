@@ -5,7 +5,7 @@ class DistanceStrategy(ABC):
     
     '''
  
-    Docstring per DistanceStrategy
+    Docstring for DistanceStrategy
  
     '''   
     
@@ -17,7 +17,7 @@ class MinkowskiDistanceStrategy(DistanceStrategy):
     
     """
     implementation of minkiwsy distance.
-    Euclidea (p=2) and Manhattan (p=1).
+    Euclidean (p=2) and Manhattan (p=1).
     """
     
     def __init__(self, p):
