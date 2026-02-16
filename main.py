@@ -4,35 +4,35 @@ import re
 import numpy as np
 import pandas as pd
 
-# Aggiunge le sottocartelle al path per permettere gli import dei moduli
+# Adds subfolders to the path to allow module imports
 sys.path.append(os.path.join(os.getcwd(), 'data_preprocessing'))
 sys.path.append(os.path.join(os.getcwd(), 'model_evaluation'))
 sys.path.append(os.path.join(os.getcwd(), 'model_development'))
 
-# Importa la pipeline e la factory di valutazione
-# Nota: Potrebbe essere necessario adattare gli import a seconda di come hai strutturato i pacchetti (__init__.py)
+# Import the pipeline and evaluation factory
+# Note: You may need to adapt the imports depending on how you have structured your packages (__init__.py)
 from data_preprocessing.pipeline import main as run_pipeline
 from model_evaluation.EvaluatorFactory import EvaluatorFactory
 
 if __name__ == "__main__":
-    print("--- AVVIO SISTEMA DI CLASSIFICAZIONE TUMORI ---")
+    print("--- START-UP OF THE TUMOUR CLASSIFICATION SYSTEM ---")
 
-    # 1. ESECUZIONE PIPELINE (Caricamento e Pulizia Dati Reali)
-    # Assicurati che il percorso del CSV sia corretto
-    print("\n[1/2] Esecuzione Data Preprocessing...")
+    # 1. PIPELINE EXECUTION (Loading and Cleaning Real Data)
+    # Ensure that the CSV path is correct
+    print("\n[1/2] Esecution Data Preprocessing...")
 
     clean_dataset = run_pipeline()
 
-    # Verifica che il dataset non sia vuoto
+    # Verify that the dataset is not empty
     if clean_dataset is None or clean_dataset.empty:
-        print("Errore: La pipeline non ha restituito dati validi.")
+        print("Error: The pipeline did not return valid data.")
         exit()
 
-    print(f"Dataset pronto: {len(clean_dataset)} campioni caricati.")
-    print(f"Colonne disponibili: {list(clean_dataset.columns)}")
+    print(f"Dataset ready: {len(clean_dataset)} samples loaded.")
+    print(f"Available columns: {list(clean_dataset.columns)}")
     num_samples = len(clean_dataset)
-    # 2. CONFIGURAZIONE VALUTAZIONE (Interfaccia Utente)
-    print("\n[2/2] Configurazione Valutazione Modello...")
+    # 2. EVALUATION CONFIGURATION (User Interface)
+    print("\n[2/2] Configuration for Model Evaluation...")
 
 VALID_METRICS = set(range(1, 8))  # {1,2,3,4,5,6,7}
 
@@ -48,20 +48,20 @@ while True:
         "7) All the Above\n"
     )
 
-    #  Controllo: solo cifre e virgole
+    # Check: only digits and commas
     if not re.fullmatch(r"\d+(,\d+)*", metrics_input.replace(" ", "")):
-        print("Errore: inserisci solo numeri separati da virgole (es. 1,3,6)")
+        print("Error: insert only numbers separated by commas (e.g. 1,3,6)")
         continue
 
     #  Parsing
     metrics_array = np.array([int(x) for x in metrics_input.split(",")])
 
-    #  Controllo: numeri ammessi
+    # Check: permitted numbers
     if not set(metrics_array).issubset(VALID_METRICS):
-        print("Errore: puoi inserire solo numeri da 1 a 7")
+        print("Error: you can only insert numbers from 1 to 7")
         continue
 
-    break  # input valido
+    break  # input not valid
 
 print("Metrics selected:", metrics_array)
 
@@ -96,42 +96,40 @@ while True:
     if choice in ["1", "2", "3", "4"]:
         break
     else:
-        print("Scelta non valida, inserisci un numero tra 1 e 4.")
+        print("Invalid choice, please select a number between 1 and 4.")
 
 if choice == "1":
     print("Running Holdout validation...")
     while True:
         try:
-            train_percentage = float(input("Inserisci la percentuale di training (tra 0.6 e 0.9): "))
+            train_percentage = float(input("Insert the training percentage (between 0.6 and 0.9): "))
             if 0.6 <= train_percentage <= 0.9:
                 break
             else:
-                print("Errore: inserisci un valore tra 0.6 e 0.9")
+                print("Error: insert a value between 0.6 and 0.9")
         except ValueError:
-            print("Errore: inserisci un numero valido")
+            print("Error: insert a valid number")
 
-    print(f"Percentuale di training selezionata: {train_percentage}")
-    # he = holdout_evaluator(df, metrics_array , train_percentage)
+    print(f"Selected training percentage: {train_percentage}")
+
     he = EvaluatorFactory.generate_evaluator("holdout", clean_dataset, metrics_array, distance_strategy_parameter,
                                              k_neighbours, train_percentage=train_percentage)
     he.evaluate()
 elif choice == "2":
     print("Running K-Fold validation...")
     try:
-        K_split = int(input("inserisci K: "))
+        K_split = int(input("Insert K: "))
         if (K_split > num_samples):
             raise ValueError
     except ValueError:
-        print("Errore: inserisci un numero valido")
+        print("Error: insert a valid number")
         exit(1)
-    # kfe = kFoldEvaluator(df, metrics_array , K_split)
     kfe = EvaluatorFactory.generate_evaluator("k-fold", clean_dataset, metrics_array, distance_strategy_parameter,
                                               k_neighbours, K_tests=K_split)
     kfe.evaluate()
 elif choice == "3":
     print("Running Leave-One-Out validation...")
-    # chiama la funzione leave_one_out()
-    # looe = LeaveOneOutEvaluator(df, metrics_array)
+    # call the function leave_one_out()
     looe = EvaluatorFactory.generate_evaluator("loo", clean_dataset, metrics_array, distance_strategy_parameter,
                                                k_neighbours)
     looe.evaluate()
