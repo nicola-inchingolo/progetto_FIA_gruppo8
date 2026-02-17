@@ -22,7 +22,7 @@ L'algoritmo principale utilizzato è **KNN (K-Nearest Neighbors)**, e il progett
 
 1. Clona il repository:
 ```bash
-   git clone <URL_DEL_REPO>
+   git clone https://github.com/nicola-inchingolo/progetto_FIA_gruppo8.git
 ```
 2. Installa le dipendenze:
 ```bash
