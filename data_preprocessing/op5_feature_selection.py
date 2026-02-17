@@ -26,13 +26,17 @@ def run_feature_selection(
         df: pd.DataFrame,
         ) -> FeatureSelectionOutputs:
     
+    # 'Sample code number' is a patient ID and holds no predictive value.
+    id_columns = ['Sample code number']
+    df = df.drop(columns=[c for c in id_columns if c in df.columns])
+    
     target_column = 'classtype_v1'
     
     # Create a temporary DataFrame with features only (excluding the target)
     # We want to avoid calculating correlation between features and target here,
     # because a strong correlation with the target is desirable and should not be removed.
     df_features = df.drop(columns=[target_column], errors='ignore')
-    
+
     # Calculate the correlation matrix for the input features only
     correlation_matrix = df_features.corr()
 
@@ -65,15 +69,15 @@ def run_feature_selection(
         np.triu(np.ones(correlation_matrix_abs.shape), k=1).astype(bool)
     )
 
-    # Identify columns to drop: creates a list of columns with correlation > 0.8
+    # Identify columns to drop: creates a list of columns with correlation > 0.95
     # The target is not present in 'upper_triangle', so there is no risk of removing it
     columns_to_drop_corr = [
         column for column in upper_triangle.columns 
-        if any(upper_triangle[column] > 0.8)
+        if any(upper_triangle[column] > 0.95)
     ]
 
     if not columns_to_drop_corr:
-        print("No redundant features found (all correlations <= 0.8).")
+        print("No redundant features found (all correlations <= 0.95).")
     else:
         print("The following redundant columns were removed: ", columns_to_drop_corr)
         # Drop the highly correlated columns from the ORIGINAL DataFrame

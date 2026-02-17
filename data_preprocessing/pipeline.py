@@ -27,7 +27,8 @@ import pandas as pd
 
 def main() -> pd.DataFrame:
 
-    file_path = input('Enter the relative or absolute path of the dataset to be processed and studied:')
+    user_input = input('Enter the path (leave empty for default): ')
+    file_path = user_input if user_input else 'data/dati_fia.csv'
         
     print("\n----- STARTING PIPELINE -----")
 
