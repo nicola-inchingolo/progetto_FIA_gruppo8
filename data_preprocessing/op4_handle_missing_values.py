@@ -26,6 +26,7 @@ def run_handling_missing_value(
         columns_with_nulls: pd.Index 
         ) -> ImputationOutputs :
     
+    # Target column contains nullable values so we removed the rows associated with them
     initial_shape = df.shape
     df = df.dropna(subset=["classtype_v1"]).copy()
     print(f"Removed {initial_shape[0] - df.shape[0]} rows with null target values.")    

@@ -39,7 +39,6 @@ def run_evaluation(df: pd.DataFrame) -> EvaluationOutputs :
         print("No missing values were found in the dataset.")
     else:
         # If not empty, print the count for each column affected
-        # We must flag these values because most ML models cannot handle NaN entries.
         print("Columns with missing values:")
         print(columns_with_nulls)
 

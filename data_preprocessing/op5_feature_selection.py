@@ -24,16 +24,16 @@ class FeatureSelectionOutputs(NamedTuple):
 
 def run_feature_selection(
         df: pd.DataFrame,
-        ) -> FeatureSelectionOutputs :
+        ) -> FeatureSelectionOutputs:
     
     target_column = 'classtype_v1'
     
-    # Crea un DataFrame temporaneo con le sole feature (escludendo il target)
-    # Vogliamo evitare di calcolare la correlazione tra feature e target qui,
-    # perché una forte correlazione col target è positiva e non va eliminata.
+    # Create a temporary DataFrame with features only (excluding the target)
+    # We want to avoid calculating correlation between features and target here,
+    # because a strong correlation with the target is desirable and should not be removed.
     df_features = df.drop(columns=[target_column], errors='ignore')
     
-    # Calcola la matrice di correlazione sulle sole feature di input
+    # Calculate the correlation matrix for the input features only
     correlation_matrix = df_features.corr()
 
     # Generate a Heatmap
@@ -51,20 +51,22 @@ def run_feature_selection(
     # Save the heatmap plot
     if not os.path.exists('data/plot'):
         os.makedirs('data/plot')
+    
     save_path = os.path.join('data/plot', 'correlation_heatmap.png')
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
-    # Consider absolute values
+    # Consider absolute values to capture both strong positive and negative correlations
     correlation_matrix_abs = correlation_matrix.abs()
 
     # Select the upper triangle of the correlation matrix
+    # This prevents checking the same pair twice and ignores the diagonal (correlation with self)
     upper_triangle = correlation_matrix_abs.where(
         np.triu(np.ones(correlation_matrix_abs.shape), k=1).astype(bool)
     )
 
     # Identify columns to drop: creates a list of columns with correlation > 0.8
-    # Il target non è presente in 'upper_triangle', quindi non rischiamo di rimuoverlo
+    # The target is not present in 'upper_triangle', so there is no risk of removing it
     columns_to_drop_corr = [
         column for column in upper_triangle.columns 
         if any(upper_triangle[column] > 0.8)

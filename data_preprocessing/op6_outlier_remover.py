@@ -1,18 +1,20 @@
 from typing import NamedTuple
 import pandas as pd
 
-"""Removes outliers using a Class-Specific IQR method with safeguards.
+"""
+    Removes outliers from the DataFrame using the IQR method, applied per class.
 
-    Instead of applying a global filter, this function handles outliers separately 
-    for each class. This is crucial for medical datasets where 'disease' cases 
-    naturally have extreme values that are not errors but signals.
+    This function groups the data by the 'classtype_v1' column and calculates the 
+    Interquartile Range (IQR) for numeric columns specific to each group. Rows falling 
+    outside the range [Q1 - 1.5*IQR, Q3 + 1.5*IQR] within their respective group are removed.
 
     Args:
-        df (pd.DataFrame): The input DataFrame.
+        df (pd.DataFrame): The input DataFrame containing numeric features and 
+            the 'classtype_v1' target column.
 
     Returns:
-        df_output (pd.DataFrame): The DataFrame with outliers removed intelligently.
-"""
+        df_output: A named tuple containing the cleaned DataFrame.
+    """
 
 class OutlierOutputs(NamedTuple):
     df_output: pd.DataFrame
@@ -22,61 +24,52 @@ def run_remove_outlier(
         ) -> OutlierOutputs :
     
     target_col = 'classtype_v1'
-    original_rows = len(df)
     
-    # Container for the processed data
-    cleaned_data_chunks = []
-
-    print(f"Starting Stratified Outlier Removal (Total rows: {original_rows})...")
-
-    # Iterate through each class (e.g., 2.0 and 4.0) independently
-    # This ensures Malignant cases are compared only to other Malignant cases
-    classes = df[target_col].unique()
+    # Identify numeric columns for outlier calculation without considering the target column
+    numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+    if target_col in numeric_cols:
+        numeric_cols.remove(target_col)
     
-    for class_value in classes:
-        # Select subset of data belonging to the current class
-        df_class = df[df[target_col] == class_value].copy()
-        
-        # Select numeric columns for outlier detection, excluding the target itself
-        numeric_cols = df_class.select_dtypes(include=['number']).columns
-        numeric_cols = [col for col in numeric_cols if col != target_col]
-        
-        # Initialize a mask of False (keep all rows by default)
-        outliers_mask = pd.Series(False, index=df_class.index)
-        
-        for col in numeric_cols:
-            Q1 = df_class[col].quantile(0.25)
-            Q3 = df_class[col].quantile(0.75)
-            IQR = Q3 - Q1
-            
-            # SAFEGUARD: If IQR is 0 (all values are identical, e.g., all 1.0),
-            # any variation would be flagged as outlier. We SKIP outlier removal 
-            # for this column in this class to preserve data.
-            if IQR == 0:
-                continue
-            
-            # Define bounds (standard 1.5 multiplier)
-            lower_bound = Q1 - 1.5 * IQR
-            upper_bound = Q3 + 1.5 * IQR
-            
-            # Identify outliers in this specific column
-            col_outliers = (df_class[col] < lower_bound) | (df_class[col] > upper_bound)
-            
-            # Update the global mask for this class
-            outliers_mask = outliers_mask | col_outliers
+    cleaned_group_list = []
+    total_rows_removed = 0
 
-        # Keep only rows that are NOT outliers
-        df_class_cleaned = df_class[~outliers_mask]
-        cleaned_data_chunks.append(df_class_cleaned)
+    # Iterate over each class (group) present in the target column
+    # We use '_' because we don't need the group name inside the loop, only the data (group_df)
+    for _, group_df in df.groupby(target_col):
         
-        removed_in_class = len(df_class) - len(df_class_cleaned)
-        print(f" - Class {class_value}: removed {removed_in_class} outliers out of {len(df_class)} rows.")
+        # Calculate specific IQR for this group (Class)
+        # Q1 and Q3 are calculated only on data from the current class
+        Q1 = group_df[numeric_cols].quantile(0.25)
+        Q3 = group_df[numeric_cols].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        
+        # Identify outlier rows only within this group
+        outliers_mask = ((group_df[numeric_cols] < lower_bound) | 
+                         (group_df[numeric_cols] > upper_bound)).any(axis=1)
+        
+        # Filter the group
+        group_cleaned = group_df[~outliers_mask]
+        
+        # Track how many rows are removed
+        rows_removed_in_group = len(group_df) - len(group_cleaned)
+        total_rows_removed += rows_removed_in_group
+        
+        # Add the cleaned group to the list
+        cleaned_group_list.append(group_cleaned)
 
-    # Reassemble the dataset
-    df_final = pd.concat(cleaned_data_chunks).sort_index()
-    
-    total_removed = original_rows - len(df_final)
-    print(f"Outlier handling complete. Total rows removed: {total_removed}")
+    # Reconstruct the full DataFrame by concatenating the cleaned groups
+    # sort_index() restores the original row order
+    df_final = pd.concat(cleaned_group_list).sort_index()
+
+    # Log results
+    if total_rows_removed > 0:
+        print(f"Outlier handling complete (Group-wise). Total rows removed: {total_rows_removed}")
+    else:
+        print("No outliers detected based on the group-wise 1.5 * IQR rule.")
+
     print("\n" + "="*50 + "\n")
 
     return OutlierOutputs(
