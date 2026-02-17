@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import pandas as pd
 
-from metrics import confusion_matrix_binary, metrics
+from model_evaluation.metrics import confusion_matrix_binary, metrics
 
 
 """

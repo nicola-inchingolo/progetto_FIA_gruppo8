@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from Evaluator import evaluator
-import plot_data
+from model_evaluation.Evaluator import evaluator
+from model_evaluation import plot_data
 from model_development import Knn_Algorithm
 
 """
