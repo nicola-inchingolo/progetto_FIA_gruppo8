@@ -12,7 +12,7 @@ Abstract base class for evaluators.
 Defines the common interface and shared functionality
 for all evaluation strategies.
 """
-class evaluator(ABC):
+class Evaluator(ABC):
 
     """
     Initializes the evaluator with a dataset and a list of metrics.

@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.getcwd(), 'model_development'))
 # Import the pipeline and evaluation factory
 # Note: You may need to adapt the imports depending on how you have structured your packages (__init__.py)
 from data_preprocessing.pipeline import main as run_pipeline
-from model_evaluation.EvaluatorFactory import EvaluatorFactory
+from model_evaluation.evaluator_factory import EvaluatorFactory
 
 if __name__ == "__main__":
     print("--- START-UP OF THE TUMOUR CLASSIFICATION SYSTEM ---")

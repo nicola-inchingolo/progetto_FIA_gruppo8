@@ -4,7 +4,7 @@ import pandas as pd
 from model_evaluation import plot_data
 from model_evaluation.metrics import confusion_matrix_binary
 from model_evaluation.metrics import calculate_mean_metrics
-from model_evaluation.Evaluator import evaluator
+from model_evaluation.evaluator import Evaluator
 from model_development import Knn_Algorithm
 
 """
@@ -16,7 +16,7 @@ training set.
 """
 
 
-class kFoldEvaluator(evaluator):
+class Kfoldevaluator(Evaluator):
     """
     Initializes the k-fold evaluator.
 

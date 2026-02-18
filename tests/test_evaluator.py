@@ -1,11 +1,11 @@
 import unittest
 import pandas as pd
 import numpy as np
-from model_evaluation.Evaluator import evaluator
+from model_evaluation.evaluator import Evaluator
 
 
 """MockEvaluator used to emulate an evaluator and simuling the abstract class methods"""
-class MockEvaluator(evaluator):
+class MockEvaluator(Evaluator):
     def evaluate(self):
         return "ok"
 

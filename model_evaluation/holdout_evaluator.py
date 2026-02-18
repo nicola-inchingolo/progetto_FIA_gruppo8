@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from model_evaluation.Evaluator import evaluator
+from model_evaluation.evaluator import Evaluator
 from model_evaluation import plot_data
 from model_development import Knn_Algorithm
 
@@ -13,7 +13,7 @@ implementation of the abstract evaluator class.
 """
 
 
-class holdout_evaluator(evaluator):
+class HoldoutEvaluator(Evaluator):
     """
     Initializes the holdout evaluator and sets the training percentage.
 

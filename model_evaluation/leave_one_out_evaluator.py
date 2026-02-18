@@ -4,9 +4,8 @@ import pandas as pd
 from model_evaluation.metrics import confusion_matrix_binary
 from model_evaluation.metrics import calculate_mean_metrics
 from model_evaluation import plot_data
-from model_evaluation.Evaluator import evaluator
+from model_evaluation.evaluator import Evaluator
 from model_development import Knn_Algorithm
-
 
 """
 The leave-one-out evaluator class implements the leave-one-out
@@ -15,14 +14,16 @@ cross-validation strategy.
 Each sample is used once as a test set while the remaining samples
 are used for training.
 """
-class LeaveOneOutEvaluator(evaluator):
 
+
+class LeaveOneOutEvaluator(Evaluator):
     """
     Initializes the leave-one-out evaluator.
 
     @:param datasetToEvaluate: Dataset used for evaluation.
     @:param metrics: Array of metric identifiers to compute.
     """
+
     def __init__(self, datasetToEvaluate: pd.DataFrame, metrics: np.array, p: int, k: int):
         super().__init__(datasetToEvaluate, metrics, p, k)
 
@@ -38,6 +39,7 @@ class LeaveOneOutEvaluator(evaluator):
     @:raise ValueError: If the index is out of range.
     @:raise KeyError: If required columns are missing from the dataset.
     """
+
     def split_dataset_with_strategy(self, size: int):
 
         if size < 0 or size >= len(self.dataset):
@@ -75,6 +77,7 @@ class LeaveOneOutEvaluator(evaluator):
 
     @:raise RuntimeError: If the leave-one-out evaluation process fails.
     """
+
     def evaluate(self):
         try:
             rows, _ = self.dataset.shape
@@ -112,7 +115,6 @@ class LeaveOneOutEvaluator(evaluator):
 
             cm_all = confusion_matrix_binary(y_test_all, y_pred_all)
             plot_data.plot_confusion_matrix(cm_all)
-            # da decidere se stampare la media dei valori, tutte le k volte o entrambe
             plot_data.save_output_result(mean_metrics)
         except Exception as e:
             raise RuntimeError("Leave-one-out evaluation failed") from e

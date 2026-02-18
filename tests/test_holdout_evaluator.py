@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 import numpy as np
 from unittest.mock import patch, MagicMock
-from model_evaluation.holdout_evaluator import holdout_evaluator
+from model_evaluation.holdout_evaluator import HoldoutEvaluator
 from model_development import Knn_Algorithm
 
 
@@ -21,37 +21,37 @@ class TestHoldoutEvaluator(unittest.TestCase):
 
     """Test that holdout_evaluator initializes correctly with valid parameters."""
     def test_init_valid(self):
-        ev = holdout_evaluator(self.df, np.array([1]), 2, 2, 0.5)
+        ev = HoldoutEvaluator(self.df, np.array([1]), 2, 2, 0.5)
         self.assertEqual(ev.train_percentage, 0.5)
         self.assertEqual(ev.seed, 42)
 
     """Test that non-float train_percentage raises TypeError."""
     def test_init_invalid_percentage_type(self):
         with self.assertRaises(TypeError):
-            holdout_evaluator(self.df, np.array([1]), 2, 2, "0.5")
+            HoldoutEvaluator(self.df, np.array([1]), 2, 2, "0.5")
 
     """Test that train_percentage outside (0,1) raises ValueError."""
     def test_init_invalid_percentage_value(self):
         with self.assertRaises(ValueError):
-            holdout_evaluator(self.df, np.array([1]), 1, 2, 1.2)
+            HoldoutEvaluator(self.df, np.array([1]), 1, 2, 1.2)
 
     """Test that the dataset splits into correct training/test sizes."""
     def test_split_dataset_sizes(self):
-        ev = holdout_evaluator(self.df, np.array([1]), 2, 2, 0.6)
+        ev = HoldoutEvaluator(self.df, np.array([1]), 2, 2, 0.6)
         x_train, x_test, y_train, y_test = ev.split_dataset_with_strategy()
         self.assertEqual(len(x_train), 2)
         self.assertEqual(len(x_test), 2)
 
     """Test that split_dataset removes 'Class' column from feature sets."""
     def test_split_dataset_removes_class_column(self):
-        ev = holdout_evaluator(self.df, np.array([1]), 2, 2, 0.5)
+        ev = HoldoutEvaluator(self.df, np.array([1]), 2, 2, 0.5)
         x_train, _, _, _ = ev.split_dataset_with_strategy()
         self.assertNotIn("Class", x_train.columns)
 
     """Test that missing required columns raises KeyError."""
     def test_split_dataset_missing_columns(self):
         df = self.df.drop(columns=["classtype_v1"])
-        ev = holdout_evaluator(df, np.array([1]), 2, 2, 0.5)
+        ev = HoldoutEvaluator(df, np.array([1]), 2, 2, 0.5)
         with self.assertRaises(KeyError):
             ev.split_dataset_with_strategy()
 
@@ -61,7 +61,7 @@ class TestHoldoutEvaluator(unittest.TestCase):
         train_percentage = 0.7
         features = np.array([6])
 
-        evaluation = holdout_evaluator(self.df,features,  2, 3, train_percentage)
+        evaluation = HoldoutEvaluator(self.df, features, 2, 3, train_percentage)
 
         x_train, x_test, y_train, y_test = evaluation.split_dataset_with_strategy()
         self.assertEqual(
