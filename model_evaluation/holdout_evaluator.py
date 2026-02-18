@@ -3,6 +3,7 @@ import numpy as np
 from model_evaluation.evaluator import Evaluator
 from model_evaluation import plot_data
 from model_development import Knn_Algorithm
+from data_preprocessing.op6_outlier_remover import run_remove_outlier
 
 """
 The holdout evaluator class implements the holdout evaluation strategy.
@@ -68,6 +69,10 @@ class HoldoutEvaluator(Evaluator):
         split_index = int(len(shuffled_dataset) * self.train_percentage)
         dtr = shuffled_dataset.iloc[:split_index]
         dtst = shuffled_dataset.iloc[split_index:]
+
+    # Remove outliers from train dataset
+        dtr = run_remove_outlier(dtr)
+        dtr = dtr.df_output
 
     # X = tutto tranne la label
         x_train = dtr.drop(columns=[target_col])

@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import random
 import os
+from model_evaluation.holdout_evaluator import HoldoutEvaluator
 
 """Handles missing values in the specified columns using mean imputation.
 
@@ -23,9 +24,13 @@ class ImputationOutputs(NamedTuple):
 
 def run_handling_missing_value(
         df: pd.DataFrame,
-        columns_with_nulls: pd.Index 
         ) -> ImputationOutputs :
-    
+
+    # Counts how many records are null in each column
+    null_values_per_column = df.isnull().sum()
+    # Identifies columns with null values
+    columns_with_nulls = null_values_per_column[null_values_per_column > 0]
+
     # Target column contains nullable values so we removed the rows associated with them
     initial_shape = df.shape
     df = df.dropna(subset=["classtype_v1"]).copy()

@@ -6,6 +6,7 @@ from model_evaluation.metrics import calculate_mean_metrics
 from model_evaluation import plot_data
 from model_evaluation.evaluator import Evaluator
 from model_development import Knn_Algorithm
+from data_preprocessing.op6_outlier_remover import run_remove_outlier
 
 """
 The leave-one-out evaluator class implements the leave-one-out
@@ -58,6 +59,10 @@ class LeaveOneOutEvaluator(Evaluator):
 
         print(f"test set:\n{test_section}\n")
         print(f"train set:\n{train_section}\n")
+
+        # Remove outliers from train dataset
+        train_section = run_remove_outlier(train_section)
+        train_section = train_section.df_output
 
         # X = tutto tranne la label
         x_train = train_section.drop(columns=[target_col])

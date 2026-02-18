@@ -43,13 +43,11 @@ def main() -> pd.DataFrame:
     # Operation 3: Data Cleaning (Conversion from string to float)
     cleaned_data = run_cleaning(
         uploaded_data.df_output, 
-        evaluated_data.object_columns_output,
         )
 
     # Operation 4: Handle Missing Values (Mean Imputation)
     data_without_missing_values = run_handling_missing_value(
         cleaned_data.df_output,
-        evaluated_data.columns_with_nulls_output,
     )
 
     # Operation 5: Feature Selection (Correlation Heatmap and Redundancy removal)
@@ -57,13 +55,8 @@ def main() -> pd.DataFrame:
         data_without_missing_values.df_output,
     )
 
-    # Operation 6: Outlier Removal
-    selected_rows = run_remove_outlier(
-        selected_features.df_output,
-    )
-
     print("Final Dataset ready:")
-    final_dataset = selected_rows.df_output
+    final_dataset = selected_features.df_output
     print(final_dataset.head)
 
     print("\n----- PIPELINE COMPLETED SUCCESSFULLY -----")

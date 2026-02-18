@@ -26,12 +26,10 @@ def run_feature_selection(
         df: pd.DataFrame,
         ) -> FeatureSelectionOutputs:
     
-    # 'Sample code number' is a patient ID and holds no predictive value.
-    id_columns = ['Sample code number']
-    df = df.drop(columns=[c for c in id_columns if c in df.columns])
-    
+    to_remove = ['Sample code number', 'Blood Pressure', 'Heart Rate']
+    df = df.drop(columns=to_remove, errors='ignore')
+
     target_column = 'classtype_v1'
-    
     # Create a temporary DataFrame with features only (excluding the target)
     # We want to avoid calculating correlation between features and target here,
     # because a strong correlation with the target is desirable and should not be removed.

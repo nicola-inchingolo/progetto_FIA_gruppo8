@@ -1,6 +1,5 @@
 from typing import NamedTuple
 import pandas as pd
-
 """
     Removes outliers from the DataFrame using the IQR method, applied per class.
 
@@ -43,8 +42,11 @@ def run_remove_outlier(
         Q3 = group_df[numeric_cols].quantile(0.75)
         IQR = Q3 - Q1
         
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
+        # lower_bound = Q1 - 1.5 * IQR
+        # upper_bound = Q3 + 1.5 * IQR
+
+        lower_bound = Q1 - 3 * IQR
+        upper_bound = Q3 + 3 * IQR
         
         # Identify outlier rows only within this group
         outliers_mask = ((group_df[numeric_cols] < lower_bound) | 
@@ -73,5 +75,6 @@ def run_remove_outlier(
     print("\n" + "="*50 + "\n")
 
     return OutlierOutputs(
-        df_output = df_final
+        # df_output = df_final
+        df_output = df
     )

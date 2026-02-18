@@ -6,6 +6,7 @@ from model_evaluation.metrics import confusion_matrix_binary
 from model_evaluation.metrics import calculate_mean_metrics
 from model_evaluation.evaluator import Evaluator
 from model_development import Knn_Algorithm
+from data_preprocessing.op6_outlier_remover import run_remove_outlier
 
 """
 The k-fold evaluator class implements the k-fold cross-validation strategy.
@@ -70,6 +71,9 @@ class Kfoldevaluator(Evaluator):
         if test_section.empty or train_section.empty:
             raise ValueError("Train or test fold is empty")
 
+        # Remove outliers from train dataset
+        train_section = run_remove_outlier(train_section)
+        train_section = train_section.df_output
   
         x_train = train_section.drop(columns=[target_col])
         y_train = train_section[target_col]

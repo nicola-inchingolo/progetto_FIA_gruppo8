@@ -20,9 +20,15 @@ class CleaningOutputs(NamedTuple):
 
 def run_cleaning(
         df: pd.DataFrame, 
-        object_columns: pd.Index,
         ) -> CleaningOutputs :
     
+    # 'Sample code number' is a patient ID and holds no predictive value
+    # The other columns are not relevant to cell tumor prediction
+    cols_to_drop = ['Sample code number','Blood Pressure', 'Heart Rate']
+    df = df.drop(columns=[col for col in cols_to_drop if col in df.columns])
+    
+
+    object_columns = df.select_dtypes(include=['object']).columns
     for col in object_columns:
         try:
             # Replace comma with dot for decimal consistency

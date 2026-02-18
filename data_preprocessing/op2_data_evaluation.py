@@ -13,14 +13,10 @@ import pandas as pd
     
     Returns:
         df_output (pd.DataFrame): The original DataFrame.
-        columns_with_nulls_output (pd.Index): Index of columns containing at least one null value.
-        object_columns_output (pd.Index): Index of columns with 'object' (categorical) data type.
 """
 
 class EvaluationOutputs(NamedTuple):
     df_output: pd.DataFrame
-    columns_with_nulls_output: pd.Index
-    object_columns_output: pd.Index
 
 def run_evaluation(df: pd.DataFrame) -> EvaluationOutputs :
     print("DataFrame Information Summary:")
@@ -33,7 +29,7 @@ def run_evaluation(df: pd.DataFrame) -> EvaluationOutputs :
     null_values_per_column = df.isnull().sum()
     # Identifies columns with null values
     columns_with_nulls = null_values_per_column[null_values_per_column > 0]
-
+    
     if columns_with_nulls.empty:
         # If the series is empty, it means no nulls were found
         print("No missing values were found in the dataset.")
@@ -93,7 +89,5 @@ def run_evaluation(df: pd.DataFrame) -> EvaluationOutputs :
     print("\n" + "="*50 + "\n")
 
     return EvaluationOutputs(
-        df_output = df,
-        columns_with_nulls_output = columns_with_nulls,
-        object_columns_output = object_columns    
-        )
+        df_output = df
+    )
