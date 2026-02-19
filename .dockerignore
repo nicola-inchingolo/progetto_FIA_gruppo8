@@ -1,0 +1,22 @@
+# Cartelle dei dati e dei risultati (verranno gestite tramite i volumi host)
+output_plots/
+output_result/
+output_results/
+
+# Cartelle di output dei test
+tests/test_model_evaluation/output_plots/
+tests/test_model_evaluation/output_result/
+
+# File di cache di Python
+__pycache__/
+*.pyc
+
+# File di configurazione degli IDE e del Sistema Operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Ignora Git
+.git/
+.gitignore

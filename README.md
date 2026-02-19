@@ -122,7 +122,11 @@ Il progetto è containerizzato per garantire la massima riproducibilità senza p
 
 2.  **Esegui il container**:
 ```bash
-   docker run -it gruppo8-tumor-classifier
+   docker run -it \
+   -v "$(pwd)/data:/app/data" \
+   -v "$(pwd)/output_plots:/app/output_plots" \
+   -v "$(pwd)/output_result:/app/output_result" \
+   gruppo8-tumor-classifier
 ```
 **Nota: L'opzione `-it` è fondamentale per interagire con il menu del programma.**
 
