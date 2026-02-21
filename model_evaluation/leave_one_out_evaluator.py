@@ -64,7 +64,6 @@ class LeaveOneOutEvaluator(Evaluator):
         train_section = run_remove_outlier(train_section)
         train_section = train_section.df_output
 
-        # X = tutto tranne la label
         x_train = train_section.drop(columns=[target_col])
         y_train = train_section[target_col]
 
@@ -115,7 +114,7 @@ class LeaveOneOutEvaluator(Evaluator):
                 plot_data.plot_ROC(fpr_array, tpr_array)
                 mean_metrics["AUC"] = auc
 
-            print("\nMedie delle metriche su tutti i fold:")
+            print("\nMean metrics:")
             print(mean_metrics)
 
             cm_all = confusion_matrix_binary(y_test_all, y_pred_all)

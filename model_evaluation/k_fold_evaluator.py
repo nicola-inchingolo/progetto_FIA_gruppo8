@@ -127,7 +127,7 @@ class Kfoldevaluator(Evaluator):
                 mean_metrics["AUC"] = auc
                 plot_data.plot_ROC(fpr_array, tpr_array)
 
-            print("\nMedie delle metriche su tutti i fold:")
+            print("\nMean metrics:")
             print(mean_metrics)
 
             cm_all = confusion_matrix_binary(y_test_all, y_pred_all)

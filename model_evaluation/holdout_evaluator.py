@@ -61,7 +61,7 @@ class HoldoutEvaluator(Evaluator):
         if target_col not in self.dataset.columns:
             raise KeyError(f"Dataset must contain column {target_col}")
 
-    # shuffle del dataset
+    # dataset shuffle
         shuffled_dataset = self.dataset.sample(
             frac=1, random_state=self.seed
             ).reset_index(drop=True)
@@ -74,7 +74,7 @@ class HoldoutEvaluator(Evaluator):
         dtr = run_remove_outlier(dtr)
         dtr = dtr.df_output
 
-    # X = tutto tranne la label
+
         x_train = dtr.drop(columns=[target_col])
         y_train = dtr[target_col]
 

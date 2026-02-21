@@ -18,8 +18,8 @@ Computes a binary confusion matrix.
 
 
 def confusion_matrix_binary(y_test, y_pred, pos_label=4, neg_label=2, normalize=True):
-    y_test = np.array(y_test)  # Rimuove gli indici originali e converte in array puro
-    y_pred = np.array(y_pred)  # Assicura che anche questo sia un array
+    y_test = np.array(y_test)
+    y_pred = np.array(y_pred)
     
     TP = np.sum((y_test == pos_label) & (y_pred == pos_label))
     TN = np.sum((y_test == neg_label) & (y_pred == neg_label))
