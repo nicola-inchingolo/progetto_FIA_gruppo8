@@ -65,14 +65,14 @@ while True:
 
 print("Metrics selected:", metrics_array)
 
-knn_parameters = input(
-    "Select the distance_strategy to apply:\n"
-    "1) Manhattan Distance\n"
-    "2) Euclidean Distance\n"
-)
 
 distance_strategy_parameter: int
 while True:
+    knn_parameters = input(
+        "Select the distance_strategy to apply:\n"
+        "1) Manhattan Distance\n"
+        "2) Euclidean Distance\n"
+    )
     if knn_parameters == "1":
         distance_strategy_parameter = 1
         break
