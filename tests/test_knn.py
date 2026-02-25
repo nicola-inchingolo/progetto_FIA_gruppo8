@@ -7,8 +7,8 @@ import pandas as pd
 # Add the current directory to the path so that we can import local modules and perform a generic test.
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from Knn_Algorithm import KNNClassifier
-from distance_strategy import MinkowskiDistanceStrategy, DistanceFactory
+from model_development.Knn_Algorithm import KNNClassifier
+from model_development.distance_strategy import MinkowskiDistanceStrategy, DistanceFactory
 
 
 class TestDistanceStrategy(unittest.TestCase):
