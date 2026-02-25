@@ -10,97 +10,98 @@ class TestRunCleaning(unittest.TestCase):
     def setUp(self):
         """
         Sets up the test data before each test method.
-        Creates a DataFrame with messy strings simulating typical data issues.
+        Creates a DataFrame with mixed issues:
+        1. Columns that should be cleaned (commas, strings representing numbers).
+        2. Columns that should be dropped (IDs).
+        3. Columns that are text and will become NaN.
         """
         self.df_messy = pd.DataFrame({
-            'price': ['10,50', '20.50', '1000', 'NotAvailable'], # Mixed formats + text
+            'Sample code number': [1001, 1002, 1003, 1004], # Should be dropped
+            'price': ['10,50', '20.50', '1000', 'NotAvailable'], # Mixed formats
             'weight': ['1,2', '5,5', '0,5', np.nan],            # European decimal format
-            'category': ['A', 'B', 'C', 'D']                    # Column that should NOT be touched
+            'category': ['A', 'B', 'C', 'D']                    # Text column (will become NaN)
         })
 
-    def test_comma_replacement(self):
+    def test_column_dropping(self):
         """
-        Verifies that commas are correctly replaced by dots and converted to floats.
+        Verifies that specific irrelevant columns are dropped from the dataframe.
         """
-        # We only target the 'price' column
-        target_cols = pd.Index(['price'])
-        
         with patch('sys.stdout', new=io.StringIO()):
-            result = run_cleaning(self.df_messy.copy(), target_cols)
+            # Run cleaning
+            result = run_cleaning(self.df_messy.copy())
+            
+        # Check that 'Sample code number' is not in the columns
+        self.assertNotIn('Sample code number', result.df_output.columns)
         
-        # Check specific values
+        # Ensure other columns remain
+        self.assertIn('price', result.df_output.columns)
+
+    def test_comma_replacement_and_conversion(self):
+        """
+        Verifies that commas are replaced by dots and object columns 
+        are correctly converted to floats.
+        """
+        with patch('sys.stdout', new=io.StringIO()):
+            result = run_cleaning(self.df_messy.copy())
+        
         cleaned_price = result.df_output['price']
+        cleaned_weight = result.df_output['weight']
         
-        # '10,50' -> 10.5
+        # Check 'price' conversion: '10,50' -> 10.5
         self.assertEqual(cleaned_price[0], 10.5)
-        # '20.50' -> 20.5 (should remain correct)
+        # '20.50' -> 20.5
         self.assertEqual(cleaned_price[1], 20.5)
-        # '1000' -> 1000.0
-        self.assertEqual(cleaned_price[2], 1000.0)
-
-    def test_non_numeric_conversion(self):
-        """
-        Verifies that non-numeric strings are coerced to NaN.
-        """
-        target_cols = pd.Index(['price'])
         
+        # Check 'weight' conversion: '1,2' -> 1.2
+        self.assertEqual(cleaned_weight[0], 1.2)
+        
+        # Verify dtypes are now float
+        self.assertTrue(pd.api.types.is_float_dtype(cleaned_price))
+        self.assertTrue(pd.api.types.is_float_dtype(cleaned_weight))
+
+    def test_non_numeric_coercion(self):
+        """
+        Verifies that non-numeric strings (like 'NotAvailable' or 'A') 
+        are coerced to NaN.
+        """
         with patch('sys.stdout', new=io.StringIO()):
-            result = run_cleaning(self.df_messy.copy(), target_cols)
+            result = run_cleaning(self.df_messy.copy())
             
-        # The 4th value was 'NotAvailable', should be NaN
+        # 'NotAvailable' in price should be NaN
         self.assertTrue(pd.isna(result.df_output['price'][3]))
+        
+        # The 'category' column contained only text.
+        # Since the function converts all object columns, these should all be NaN.
+        self.assertTrue(result.df_output['category'].isna().all())
 
-    def test_multiple_columns(self):
+    def test_exception_handling(self):
         """
-        Verifies that the function can handle multiple columns at once.
+        Verifies that the function handles unexpected errors during conversion
+        without crashing.
+        We mock pd.to_numeric to raise an exception for a specific column.
         """
-        target_cols = pd.Index(['price', 'weight'])
+        # We create a specific dataframe for this test
+        df_test = pd.DataFrame({'col1': ['1,2'], 'col2': ['3,4']})
         
-        with patch('sys.stdout', new=io.StringIO()):
-            result = run_cleaning(self.df_messy.copy(), target_cols)
+        # We patch pandas to_numeric just for this test block
+        with patch('pandas.to_numeric') as mock_to_numeric:
+            # Configure the mock: raise ValueError for the first call, work for the second
+            mock_to_numeric.side_effect = [ValueError("Simulated Error"), 1.2]
             
-        # Check both columns are now float type
-        self.assertTrue(pd.api.types.is_float_dtype(result.df_output['price']))
-        self.assertTrue(pd.api.types.is_float_dtype(result.df_output['weight']))
-        
-        # Check a value in the second column ('1,2' -> 1.2)
-        self.assertEqual(result.df_output['weight'][0], 1.2)
-
-    def test_ignore_unlisted_columns(self):
-        """
-        Verifies that columns not in the object_columns list are left unchanged.
-        """
-        target_cols = pd.Index(['price'])
-        
-        with patch('sys.stdout', new=io.StringIO()):
-            result = run_cleaning(self.df_messy.copy(), target_cols)
-            
-        # 'category' was not in target_cols, so it should remain 'object' (string)
-        self.assertEqual(result.df_output['category'][0], 'A')
-        # Ensure it wasn't converted to NaN or numbers
-        self.assertFalse(pd.api.types.is_numeric_dtype(result.df_output['category']))
-
-    def test_error_resilience(self):
-        """
-        Verifies that the function handles errors without crashing, thanks to the try-except block.
-        """
-        # 'non_existent' column does not exist in df
-        target_cols = pd.Index(['price', 'non_existent'])
-        
-        # This should not raise a KeyError because the exception is catched
-        with patch('sys.stdout', new=io.StringIO()) as fake_out:
-            result = run_cleaning(self.df_messy.copy(), target_cols)
-            
-            # Verify 'price' was still processed correctly
-            self.assertEqual(result.df_output['price'][0], 10.5)
+            with patch('sys.stdout', new=io.StringIO()) as fake_out:
+                run_cleaning(df_test)
+                output = fake_out.getvalue()
+                
+            # Verify that the error message was printed
+            self.assertIn("Error during conversion of column", output)
+            self.assertIn("Simulated Error", output)
 
     def test_return_structure(self):
         """
         Verifies the output is strictly the expected NamedTuple.
         """
-        target_cols = pd.Index(['price'])
         with patch('sys.stdout', new=io.StringIO()):
-            result = run_cleaning(self.df_messy.copy(), target_cols)
+            result = run_cleaning(self.df_messy.copy())
             
         self.assertIsInstance(result, CleaningOutputs)
         self.assertIsInstance(result.df_output, pd.DataFrame)

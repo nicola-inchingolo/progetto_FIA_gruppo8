@@ -21,58 +21,77 @@ class TestRunEvaluation(unittest.TestCase):
 
     def test_return_structure(self):
         """
-        Verifies that the function returns the correct data structure and objects.
-        Checks if the output matches the expected NamedTuple fields.
+        Verifies that the function returns the correct data structure.
+        Since the function only returns df_output now, we verify that specifically.
         """
-        # Suppress stdout to keep the test console output clean
         with patch('sys.stdout', new=io.StringIO()):
             result = run_evaluation(self.df_mixed)
         
+        # Verify that the return is an instance of EvaluationOutputs
+        self.assertIsInstance(result, EvaluationOutputs)
+
         # Verify that the returned dataframe matches the input
         pd.testing.assert_frame_equal(result.df_output, self.df_mixed)
         
-        # Verify that columns with nulls were detected
-        self.assertFalse(result.columns_with_nulls_output.empty)
-        
-        # Verify that object columns were identified correctly
-        self.assertIn('name', result.object_columns_output)
-        self.assertIn('city', result.object_columns_output)
-        # Ensure numeric columns are not in the object list
-        self.assertNotIn('age', result.object_columns_output)
+        # Checks for columns_with_nulls_output and object_columns_output
+        # as they are no longer part of the return signature.
 
-    def test_missing_values_detection(self):
+    def test_missing_values_print_logic(self):
         """
-        Verifies that missing values are correctly identified and counted.
+        Verifies that missing values are correctly identified by checking the printed output.
         """
-        with patch('sys.stdout', new=io.StringIO()):
-            result = run_evaluation(self.df_mixed)
-            
-        # We expect 'name' and 'age' to be in the nulls list
-        null_cols = result.columns_with_nulls_output
-        self.assertIn('name', null_cols)
-        self.assertIn('age', null_cols)
-        self.assertNotIn('city', null_cols)
-        
-        # Verify the exact count of nulls (1 for name, 1 for age)
-        self.assertEqual(null_cols['name'], 1)
-        self.assertEqual(null_cols['age'], 1)
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            run_evaluation(self.df_mixed)
+            output = fake_out.getvalue()
 
-    def test_no_missing_values(self):
+        # Check if the "Missing Values Analysis" section was printed
+        self.assertIn("Missing Values Analysis:", output)
+        
+        # Check if the columns with nulls were mentioned in the output
+        self.assertIn("name", output)
+        self.assertIn("age", output)
+        
+        # Ensure columns without nulls are not listed in the missing values section
+        # 'city' might appear in other sections (like unique values), 
+        # so we rely on the specific message "Columns with missing values:" check roughly.
+        # A simple check is to ensure the specific logic for "No missing values" is not present.
+        self.assertNotIn("No missing values were found in the dataset.", output)
+
+    def test_no_missing_values_print_logic(self):
         """
-        Tests the behavior when the dataset has no missing values.
+        Tests the printed output when the dataset has no missing values.
         """
         df_clean = pd.DataFrame({
             'A': [1, 2, 3],
             'B': ['x', 'y', 'z']
         })
         
-        with patch('sys.stdout', new=io.StringIO()):
-            result = run_evaluation(df_clean)
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            run_evaluation(df_clean)
+            output = fake_out.getvalue()
             
-        # The output series for nulls should be empty
-        self.assertTrue(result.columns_with_nulls_output.empty)
+        # We expect the specific success message
+        self.assertIn("No missing values were found in the dataset.", output)
 
-    def test_no_object_columns(self):
+    def test_object_columns_print_logic(self):
+        """
+        Tests that object columns are correctly detected and unique values are printed.
+        """
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            run_evaluation(self.df_mixed)
+            output = fake_out.getvalue()
+
+        # Check that the analysis found the object columns
+        self.assertIn("Object-type Columns Analysis:", output)
+        
+        # The list of object columns should be printed
+        self.assertIn("name", output)
+        self.assertIn("city", output)
+        
+        # Check that unique values are being inspected
+        self.assertIn("Unique values within Object columns:", output)
+
+    def test_no_object_columns_print_logic(self):
         """
         Tests the behavior when the dataset contains only numeric columns.
         """
@@ -81,11 +100,12 @@ class TestRunEvaluation(unittest.TestCase):
             'B': [1.1, 2.2, 3.3]
         })
         
-        with patch('sys.stdout', new=io.StringIO()):
-            result = run_evaluation(df_numeric)
+        with patch('sys.stdout', new=io.StringIO()) as fake_out:
+            run_evaluation(df_numeric)
+            output = fake_out.getvalue()
             
-        # The index for object columns should be empty
-        self.assertTrue(result.object_columns_output.empty)
+        # We expect the specific message for no object columns
+        self.assertIn("No object-type (string) columns found in the dataset.", output)
 
     def test_output_integrity(self):
         """
@@ -99,5 +119,4 @@ class TestRunEvaluation(unittest.TestCase):
         pd.testing.assert_frame_equal(result.df_output, self.df_mixed)
 
 if __name__ == '__main__':
-    # Running the tests
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
