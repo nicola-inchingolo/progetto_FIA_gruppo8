@@ -26,9 +26,6 @@ def run_feature_selection(
         df: pd.DataFrame,
         ) -> FeatureSelectionOutputs:
     
-    to_remove = ['Sample code number', 'Blood Pressure', 'Heart Rate']
-    df = df.drop(columns=to_remove, errors='ignore')
-
     target_column = 'classtype_v1'
     # Create a temporary DataFrame with features only (excluding the target)
     # We want to avoid calculating correlation between features and target here,
