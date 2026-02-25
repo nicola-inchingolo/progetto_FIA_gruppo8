@@ -1,23 +1,23 @@
-# Usa un'immagine base ufficiale di Python
+# Use an official Python base image
 FROM python:3.12-slim
 
-# Imposta la directory di lavoro all'interno del container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copia il file dei requisiti per installare le dipendenze
+# Copy the requirements file to install dependencies
 COPY requirements.txt .
 
-# Installa le dipendenze di sistema necessarie per alcune librerie grafiche e le dipendenze Python
+# Install system dependencies required by some graphical libraries and Python dependencies
 RUN apt-get update && apt-get install -y \
     && pip install --no-cache-dir -r requirements.txt
 
 
-# Copia tutto il resto del codice sorgente nel container
+# Copy the rest of the source code into the container
 COPY . .
 
-# Crea le cartelle per l'input e l'output (verranno usate come punti di montaggio)
+# Create input and output directories (they will be used as mount points)
 RUN mkdir -p /app/data /app/output_plots /app/output_result
 
-# Comando per avviare l'applicazione. 
-# Si usa -u per forzare l'output non bufferizzato (utile per vedere i log in tempo reale)
+# Command to start the application.
+# The -u flag forces unbuffered output (useful to see logs in real time)
 CMD ["python", "-u", "main.py"]
